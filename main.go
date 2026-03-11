@@ -8,6 +8,6 @@ import (
 func main() {
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/", fs)
-	http.ListenAndServe(":8080", nil)
 	fmt.Println("Server started at http://localhost:8080")
+	http.ListenAndServe(":8080", nil)
 }
