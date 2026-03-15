@@ -9,8 +9,20 @@ type Item struct {
 }
 
 type Inventory struct {
-	ItemID          int       `json:"item_id"`
-	Name            string    `json:"name"`
-	CurrentQuantity int       `json:"current_quantity"`
-	LastUpdated     time.Time `json:"last_updated"`
+	ItemID          int       `json:"ItemID"`
+	Name            string    `json:"Name"`
+	CurrentQuantity int       `json:"CurrentQuantity"`
+	LastUpdated     time.Time `json:"LastUpdated"`
+}
+
+type Event struct {
+	EventID        int       `json:"event_id"`
+	ItemID         int       `json:"item_id"`
+	UserID         int       `json:"user_id"`
+	ItemName       string    `json:"item_name"`
+	Username       string    `json:"username"`
+	EventType      string    `json:"event_type"`
+	ReasonCode     string    `json:"reason_code"`
+	QuantityChange int       `json:"quantity_change"`
+	Timestamp      time.Time `json:"timestamp"`
 }

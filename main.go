@@ -14,10 +14,9 @@ func main() {
 	}
 	defer CloseDB()
 
-	http.HandleFunc("/api/items", GetItemsHandler)
-
+	http.HandleFunc("/items", GetItemsHandler)
 	http.HandleFunc("/inventory", GetInventoryHandler)
-
+	http.HandleFunc("/events", GetEventsHandler)
 	// Serve UI
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/", fs)
