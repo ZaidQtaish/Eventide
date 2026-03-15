@@ -4,30 +4,34 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
-
-	"github.com/jackc/pgx/v5"
 )
 
-type Item struct {
-	ID   int    `json:"item_id"`
-	SKU  string `json:"sku"`
-	Name string `json:"name"`
-}
-
 func main() {
-	// Database connection string
-	connStr := "postgres://postgres@localhost:5432/logistock"
+	// Initialize database connection pool
+	err := InitDB()
+	if err != nil {
+		log.Fatal("Failed to connect to database:", err)
+	}
+	defer CloseDB()
 
-	http.HandleFunc("/api/items", func(w http.ResponseWriter, r *http.Request) {
-		conn, _ := pgx.Connect(context.Background(), connStr)
-		defer conn.Close(context.Background())
+	http.HandleFunc("/items", func(w http.ResponseWriter, r *http.Request) {
+		ctx := context.Background()
 
-		rows, _ := conn.Query(context.Background(), "SELECT item_id, sku, name FROM items")
+		rows, err := db.Query(ctx, "SELECT item_id, sku, name FROM items")
+		if err != nil {
+			http.Error(w, "Query failed", http.StatusInternalServerError)
+			return
+		}
+		defer rows.Close()
+
 		var items []Item
 		for rows.Next() {
 			var i Item
-			rows.Scan(&i.ID, &i.SKU, &i.Name)
+			if err := rows.Scan(&i.ID, &i.SKU, &i.Name); err != nil {
+				continue
+			}
 			items = append(items, i)
 		}
 
@@ -35,8 +39,10 @@ func main() {
 		json.NewEncoder(w).Encode(items)
 	})
 
+	// Serve UI
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/", fs)
-	fmt.Println("Server started at http://localhost:8080")
-	http.ListenAndServe(":8080", nil)
+
+	fmt.Println("🚀 Eventide running at http://localhost:8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
