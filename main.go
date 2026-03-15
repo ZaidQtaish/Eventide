@@ -14,12 +14,14 @@ func main() {
 	}
 	defer CloseDB()
 
-	http.HandleFunc("/items", GetItemsHandler)
+	http.HandleFunc("/api/items", GetItemsHandler)
+
+	http.HandleFunc("/inventory", GetInventoryHandler)
 
 	// Serve UI
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/", fs)
 
-	fmt.Println("🚀 Eventide running at http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	fmt.Println("🚀 Eventide running at http://localhost:3000")
+	log.Fatal(http.ListenAndServe(":3000", nil))
 }

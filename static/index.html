@@ -3,10 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LogiStock</title>
+    <title>Eventide - Inventory Management</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>LogiStock</h1>
-    <p>Welcome to LogiStock, your one-stop solution for inventory management and logistics tracking. Our platform offers real-time updates, efficient stock management, and seamless integration with your existing systems. Stay organized and optimize your supply chain with LogiStock.</p>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">🌅 Eventide</div>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#dashboard">Dashboard</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Eventide Inventory System</h1>
+            <p class="subtitle">Seamless inventory management from dusk till dawn</p>
+            <button class="cta-btn" onclick="scrollToSection('dashboard')">Get Started</button>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <h2>Why Choose Eventide?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Real-Time Updates</h3>
+                    <p>Live inventory tracking across all warehouses</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Analytics & Insights</h3>
+                    <p>Data-driven decisions for optimization</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Secure & Reliable</h3>
+                    <p>Enterprise-grade security for your data</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🚀</div>
+                    <h3>Scalable</h3>
+                    <p>Grows with your business needs</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard Preview Section -->
+    <section id="dashboard" class="dashboard-section">
+        <div class="container">
+            <h2>Your Inventory Dashboard</h2>
+            <div class="dashboard-demo">
+                <div class="items-list">
+                    <h3>📦 Current Items</h3>
+                    <div id="items-container" class="items-container">
+                        <p class="loading">Loading items...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 Eventide. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="script.ts"></script>
 </body>
 </html>
