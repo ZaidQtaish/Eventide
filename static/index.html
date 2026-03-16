@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eventide - Inventory Management</title>
+    <title>Eventide - Intelligent Inventory Management</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <!-- Navigation -->
     <nav class="navbar">
-        <div class="container">
-            <div class="logo">🌅 Eventide</div>
+        <div class="container nav-container">
+            <div class="logo">Eventide</div>
             <ul class="nav-links">
                 <li><a href="#features">Features</a></li>
-                <li><a href="#dashboard">Dashboard</a></li>
-                <li><a href="#contact">Contact</a></li>
+                <li><a href="#dashboard">Inventory</a></li>
             </ul>
         </div>
     </nav>
@@ -22,50 +21,53 @@
     <!-- Hero Section -->
     <section class="hero">
         <div class="container">
-            <h1>Eventide Inventory System</h1>
-            <p class="subtitle">Seamless inventory management from dusk till dawn</p>
-            <button class="cta-btn" onclick="scrollToSection('dashboard')">Get Started</button>
+            <div class="hero-content">
+                <h1>Smart Inventory Management Made Simple</h1>
+                <p class="subtitle">Efficient inventory tracking with event sourcing</p>
+                <button class="cta-btn primary" onclick="scrollToSection('dashboard')">View Dashboard</button>
+            </div>
         </div>
     </section>
 
     <!-- Features Section -->
     <section id="features" class="features">
         <div class="container">
-            <h2>Why Choose Eventide?</h2>
+            <h2>Powerful Features</h2>
+            <p class="section-subtitle">Everything you need to manage inventory effectively</p>
             <div class="features-grid">
                 <div class="feature-card">
-                    <div class="feature-icon">⚡</div>
-                    <h3>Real-Time Updates</h3>
-                    <p>Live inventory tracking across all warehouses</p>
+                    <div class="feature-icon">📦</div>
+                    <h3>Event Sourcing</h3>
+                    <p>Track all inventory changes in real-time with complete event history</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">📊</div>
-                    <h3>Analytics & Insights</h3>
-                    <p>Data-driven decisions for optimization</p>
+                    <div class="feature-icon">🤖</div>
+                    <h3>AI Stock Forecasting</h3>
+                    <p>Predict incoming and outgoing stock for the next day with AI precision</p>
                 </div>
                 <div class="feature-card">
+
                     <div class="feature-icon">🔒</div>
                     <h3>Secure & Reliable</h3>
-                    <p>Enterprise-grade security for your data</p>
+                    <p>Enterprise-grade security and reliability for your data</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">🚀</div>
-                    <h3>Scalable</h3>
-                    <p>Grows with your business needs</p>
+                    <div class="feature-icon">⚡</div>
+                    <h3>Fast & Efficient</h3>
+                    <p>Instant access to your inventory data whenever you need it</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Dashboard Preview Section -->
+    <!-- Dashboard Section -->
     <section id="dashboard" class="dashboard-section">
         <div class="container">
-            <h2>Your Inventory Dashboard</h2>
+            <h2>Current Inventory</h2>
             <div class="dashboard-demo">
                 <div class="items-list">
-                    <h3>📦 Current Items</h3>
                     <div id="items-container" class="items-container">
-                        <p class="loading">Loading items...</p>
+                        <p class="loading">Loading inventory...</p>
                     </div>
                 </div>
             </div>
