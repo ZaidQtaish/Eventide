@@ -1,7 +1,6 @@
 // Fetch items from API and display them
 async function loadItems() {
     const container = document.getElementById('items-container');
-    if (!container) return;
     
     try {
         const response = await fetch('/inventory');
@@ -34,6 +33,25 @@ async function loadItems() {
     }
 }
 
+// Subscribe to event sources for inventory updates
+function subscribeToInventoryUpdates() {
+    try {
+        const eventSource = new EventSource('/events/inventory');
+        
+        eventSource.onmessage = function(event) {
+            console.log('Inventory update received:', event.data);
+            loadItems();
+        };
+        
+        eventSource.onerror = function(error) {
+            console.error('Event source error:', error);
+            eventSource.close();
+        };
+    } catch (error) {
+        console.log('Event sources not available, using polling fallback');
+    }
+}
+
 // Smooth scroll to section
 function scrollToSection(sectionId) {
     const element = document.getElementById(sectionId);
@@ -42,8 +60,8 @@ function scrollToSection(sectionId) {
     }
 }
 
-// Load items when page loads
-document.addEventListener('DOMContentLoaded', loadItems);
-
-// Refresh items every 30 seconds for live updates
-setInterval(loadItems, 30000);
+// Load data when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    loadItems();
+    subscribeToInventoryUpdates();
+});
