@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strconv"
 )
 
 // GetItemsHandler retrieves all items from the database
@@ -89,4 +90,36 @@ func GetEventsHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(events)
+}
+
+func GetDailyStatementsHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+
+	startDate := r.URL.Query().Get("start_date")
+	endDate := r.URL.Query().Get("end_date")
+	itemIDStr := r.URL.Query().Get("item_id")
+
+	if startDate == "" || endDate == "" {
+		http.Error(w, "start_date and end_date parameters are required", http.StatusBadRequest)
+		return
+	}
+
+	var itemID *int
+	if itemIDStr != "" {
+		id, err := strconv.Atoi(itemIDStr)
+		if err != nil {
+			http.Error(w, "Invalid item_id", http.StatusBadRequest)
+			return
+		}
+		itemID = &id
+	}
+
+	statements, err := GetDailyStatements(ctx, startDate, endDate, itemID)
+	if err != nil {
+		http.Error(w, "Query failed", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(statements)
 }

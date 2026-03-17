@@ -26,3 +26,12 @@ type Event struct {
 	QuantityChange int       `json:"quantity_change"`
 	Timestamp      time.Time `json:"timestamp"`
 }
+
+type DailyStatement struct {
+	Date        time.Time `json:"date"`
+	ItemID      int       `json:"item_id"`
+	ItemName    string    `json:"item_name"`
+	InQuantity  int       `json:"in_quantity"`
+	OutQuantity int       `json:"out_quantity"`
+	NetChange   int       `json:"net_change"`
+}
