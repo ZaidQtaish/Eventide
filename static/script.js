@@ -39,13 +39,13 @@ async function loadInventoryStats() {
 
         const stock = await response.json();
         const totalItems = stock.length;
-        const belowMin = stock.filter(item => item.minimum_stock && item.current_quantity < item.minimum_stock);
+        const belowMin = stock.filter(item => item.MinimumQuantity && item.CurrentQuantity < item.MinimumQuantity);
 
         totalEl.textContent = totalItems;
         belowMinEl.textContent = belowMin.length;
-        warehousesEl.textContent = '—'; // not in payload yet
+        warehousesEl.textContent = '5'; // static for now
         const lastUpdated = stock.reduce((latest, item) => {
-            const ts = item.last_updated ? new Date(item.last_updated) : null;
+            const ts = item.LastUpdated ? new Date(item.LastUpdated) : null;
             if (!ts) return latest;
             return !latest || ts > latest ? ts : latest;
         }, null);
@@ -71,11 +71,11 @@ function renderLowStockRow(item) {
     return `
         <div class="low-row">
             <div>
-                <div class="low-title">${item.name || 'Item'}</div>
+                <div class="low-title">${item.Name || 'Item'}</div>
                 <div class="low-meta">SKU: ${item.sku || 'n/a'}</div>
             </div>
             <div class="low-qty">
-                <span class="pill danger">${item.current_quantity ?? 0} / ${item.minimum_stock ?? '-'} min</span>
+                <span class="pill danger">${item.CurrentQuantity ?? 0} / ${item.MinimumQuantity ?? '-'} min</span>
             </div>
         </div>
     `;

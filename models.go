@@ -13,6 +13,7 @@ type Inventory struct {
 	Name            string    `json:"Name"`
 	CurrentQuantity int       `json:"CurrentQuantity"`
 	LastUpdated     time.Time `json:"LastUpdated"`
+	MinimumQuantity int       `json:"MinimumQuantity"`
 }
 
 type Event struct {
