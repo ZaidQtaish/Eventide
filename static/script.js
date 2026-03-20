@@ -72,7 +72,7 @@ function renderLowStockRow(item) {
         <div class="low-row">
             <div>
                 <div class="low-title">${item.Name || 'Item'}</div>
-                <div class="low-meta">SKU: ${item.sku || 'n/a'}</div>
+                <div class="low-meta">SKU: ${item.SKU || 'n/a'}</div>
             </div>
             <div class="low-qty">
                 <span class="pill danger">${item.CurrentQuantity ?? 0} / ${item.MinimumQuantity ?? '-'} min</span>
