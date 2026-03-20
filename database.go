@@ -8,7 +8,7 @@ import (
 
 var db *pgxpool.Pool
 
-const connStr = "postgres://postgres:admin123@127.0.0.1:5432/logistock"
+const connStr = "postgres://postgres:admin123@127.0.0.1:5432/eventide"
 
 // InitDB initializes the database connection pool
 func InitDB() error {

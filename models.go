@@ -16,12 +16,12 @@ type Inventory struct {
 }
 
 type Event struct {
-	EventID        int       `json:"event_id"`
+	EventID        int       `json:"id"`
 	ItemID         int       `json:"item_id"`
 	UserID         int       `json:"user_id"`
 	ItemName       string    `json:"item_name"`
 	Username       string    `json:"username"`
-	EventType      string    `json:"event_type"`
+	EventType      string    `json:"type"`
 	ReasonCode     string    `json:"reason_code"`
 	QuantityChange int       `json:"quantity_change"`
 	Timestamp      time.Time `json:"timestamp"`
