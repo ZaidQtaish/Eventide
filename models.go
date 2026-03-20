@@ -21,6 +21,7 @@ type Event struct {
 	UserID         int       `json:"user_id"`
 	ItemName       string    `json:"item_name"`
 	Username       string    `json:"username"`
+	WarehouseID    int       `json:"warehouse_id"`
 	EventType      string    `json:"type"`
 	ReasonCode     string    `json:"reason_code"`
 	QuantityChange int       `json:"quantity_change"`

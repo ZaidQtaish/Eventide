@@ -1,4 +1,4 @@
-module logistock-app
+module eventide-app
 
 go 1.24.0
 
