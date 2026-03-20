@@ -35,7 +35,7 @@ func GetInventoryHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 
 	query := `
-		SELECT s.item_id, i.name, s.current_quantity, s.last_updated
+		SELECT s.item_id, i.name, i.minimum_stock, s.current_quantity, s.last_updated
 		FROM snapshot s
 		JOIN items i ON s.item_id = i.id
 		ORDER BY s.item_id
@@ -51,7 +51,7 @@ func GetInventoryHandler(w http.ResponseWriter, r *http.Request) {
 	var inventory []Inventory
 	for rows.Next() {
 		var inv Inventory
-		if err := rows.Scan(&inv.ItemID, &inv.Name, &inv.CurrentQuantity, &inv.LastUpdated); err != nil {
+		if err := rows.Scan(&inv.ItemID, &inv.Name, &inv.MinimumQuantity, &inv.CurrentQuantity, &inv.LastUpdated); err != nil {
 			continue
 		}
 		inventory = append(inventory, inv)
