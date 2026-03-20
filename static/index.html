@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                        <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -51,11 +51,6 @@
                     <h3>Secure & Reliable</h3>
                     <p>Enterprise-grade security and reliability for your data</p>
                 </div>
-                <div class="feature-card">
-                    <div class="feature-icon">⚡</div>
-                    <h3>Fast & Efficient</h3>
-                    <p>Instant access to your inventory data whenever you need it</p>
-                </div>
             </div>
         </div>
     </section>
@@ -63,11 +58,50 @@
     <!-- Dashboard Section -->
     <section id="dashboard" class="dashboard-section">
         <div class="container">
-            <h2>Current Inventory</h2>
-            <div class="dashboard-demo">
-                <div class="items-list">
-                    <div id="items-container" class="items-container">
-                        <p class="loading">Loading inventory...</p>
+            <div class="dashboard-header">
+                <div>
+                    <h2>Dashboard</h2>
+                    <p class="section-subtitle">Live pulse of your inventory</p>
+                </div>
+            </div>
+
+            <div class="cards-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Items</div>
+                    <div class="stat-value" id="stat-total-items">--</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-label">Below Minimum</div>
+                    <div class="stat-value" id="stat-below-min">--</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Warehouses</div>
+                    <div class="stat-value" id="stat-warehouses">--</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Last Update</div>
+                    <div class="stat-value" id="stat-last-update">--</div>
+                </div>
+            </div>
+
+            <div class="dashboard-split">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3>Recent Stock Changes</h3>
+                        <span class="pill">Last 5</span>
+                    </div>
+                    <div id="recent-events" class="events-container">
+                        <p class="loading">Loading recent activity...</p>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3>Low Stock</h3>
+                        <span class="pill warning">Below min</span>
+                    </div>
+                    <div id="low-stock" class="low-stock-list">
+                        <p class="loading">Loading low stock...</p>
                     </div>
                 </div>
             </div>

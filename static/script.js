@@ -1,55 +1,103 @@
-// Fetch items from API and display them
-async function loadItems() {
-    const container = document.getElementById('items-container');
-    
+// Fetch latest 5 events and display them
+async function loadRecentEvents() {
+    const container = document.getElementById('recent-events');
+
     try {
-        const response = await fetch('/inventory');
+        const response = await fetch('/events');
         if (!response.ok) {
-            throw new Error('Failed to fetch items');
+            throw new Error('Failed to fetch events');
         }
-        
-        const stock = await response.json();
-        
-        if (!stock || stock.length === 0) {
-            container.innerHTML = '<p class="loading">No items found</p>';
+
+        const events = await response.json();
+        const recent = (events || []).slice(0, 5);
+
+        if (!recent.length) {
+            container.innerHTML = '<p class="loading">No recent changes</p>';
             return;
         }
-        
-        container.innerHTML = stock.map(item => {
-            return `
-            <div class="item-row">
-                <div class="item-info">
-                    <div class="item-id">ID: ${item.ItemID}</div>
-                    <div class="item-id">Item: ${item.Name}</div>
-                    <div class="item-sku">Quantity: ${item.CurrentQuantity}</div>
-                    <div class="item-name">Last Updated: ${new Date(item.LastUpdated).toLocaleString()}</div>
-                </div>
-            </div>
-        `;
-        }).join('');
+
+        container.innerHTML = recent.map(renderEventRow).join('');
     } catch (error) {
-        console.error('Error loading items:', error);
-        container.innerHTML = '<p class="loading">Error loading items. Please try again.</p>';
+        console.error('Error loading events:', error);
+        container.innerHTML = '<p class="loading">Error loading events. Please try again.</p>';
     }
 }
 
-// Subscribe to event sources for inventory updates
-function subscribeToInventoryUpdates() {
+// Fetch inventory to compute stats and low-stock list
+async function loadInventoryStats() {
+    const totalEl = document.getElementById('stat-total-items');
+    const belowMinEl = document.getElementById('stat-below-min');
+    const warehousesEl = document.getElementById('stat-warehouses');
+    const lastUpdateEl = document.getElementById('stat-last-update');
+    const lowStockContainer = document.getElementById('low-stock');
+
     try {
-        const eventSource = new EventSource('/events/inventory');
-        
-        eventSource.onmessage = function(event) {
-            console.log('Inventory update received:', event.data);
-            loadItems();
-        };
-        
-        eventSource.onerror = function(error) {
-            console.error('Event source error:', error);
-            eventSource.close();
-        };
+        const response = await fetch('/inventory');
+        if (!response.ok) {
+            throw new Error('Failed to fetch inventory');
+        }
+
+        const stock = await response.json();
+        const totalItems = stock.length;
+        const belowMin = stock.filter(item => item.minimum_stock && item.current_quantity < item.minimum_stock);
+
+        totalEl.textContent = totalItems;
+        belowMinEl.textContent = belowMin.length;
+        warehousesEl.textContent = '—'; // not in payload yet
+        const lastUpdated = stock.reduce((latest, item) => {
+            const ts = item.last_updated ? new Date(item.last_updated) : null;
+            if (!ts) return latest;
+            return !latest || ts > latest ? ts : latest;
+        }, null);
+        lastUpdateEl.textContent = lastUpdated ? lastUpdated.toLocaleString() : '—';
+
+        if (!belowMin.length) {
+            lowStockContainer.innerHTML = '<p class="loading">All items above minimum</p>';
+            return;
+        }
+
+        lowStockContainer.innerHTML = belowMin.slice(0, 5).map(renderLowStockRow).join('');
     } catch (error) {
-        console.log('Event sources not available, using polling fallback');
+        console.error('Error loading inventory stats:', error);
+        totalEl.textContent = '--';
+        belowMinEl.textContent = '--';
+        warehousesEl.textContent = '--';
+        lastUpdateEl.textContent = '--';
+        lowStockContainer.innerHTML = '<p class="loading">Error loading inventory.</p>';
     }
+}
+
+function renderLowStockRow(item) {
+    return `
+        <div class="low-row">
+            <div>
+                <div class="low-title">${item.name || 'Item'}</div>
+                <div class="low-meta">SKU: ${item.sku || 'n/a'}</div>
+            </div>
+            <div class="low-qty">
+                <span class="pill danger">${item.current_quantity ?? 0} / ${item.minimum_stock ?? '-'} min</span>
+            </div>
+        </div>
+    `;
+}
+
+function renderEventRow(evt) {
+    const isInbound = evt.type === 'inbound';
+    const directionClass = isInbound ? 'event-in' : 'event-out';
+    const sign = isInbound ? '+' : '-';
+    const icon = isInbound ? '⬆' : '⬇';
+    const warehouse = evt.warehouse_id ? ` • WH ${evt.warehouse_id}` : '';
+
+    return `
+        <div class="event-row ${directionClass}">
+            <div class="event-icon">${icon}</div>
+            <div class="event-details">
+                <div class="event-title">${evt.item_name || 'Item'} ${warehouse}</div>
+                <div class="event-meta">${evt.username || 'user'} • ${new Date(evt.timestamp).toLocaleString()}</div>
+            </div>
+            <div class="event-qty">${sign}${Math.abs(evt.quantity_change)}</div>
+        </div>
+    `;
 }
 
 // Smooth scroll to section
@@ -62,6 +110,6 @@ function scrollToSection(sectionId) {
 
 // Load data when page loads
 document.addEventListener('DOMContentLoaded', () => {
-    loadItems();
-    subscribeToInventoryUpdates();
+    loadRecentEvents();
+    loadInventoryStats();
 });
