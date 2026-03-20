@@ -9,6 +9,7 @@
     --primary-light: #60a5fa;
     --primary-dark: #1e40af;
     --secondary: #10b981;
+    --secondary-dark: #047857;
     --warning: #f59e0b;
     --accent: #8b5cf6;
     --bg-dark: #ffffff;
@@ -204,7 +205,7 @@ body {
 .dashboard-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: start;
     margin-bottom: 24px;
 }
 
@@ -235,7 +236,7 @@ body {
 }
 
 .stat-value {
-    font-size: 28px;
+    font-size: 27px;
     font-weight: 800;
     color: var(--text-dark);
 }
@@ -331,11 +332,11 @@ body {
 
 .event-in .event-icon {
     background: #e0ecff;
-    color: var(--primary-dark);
+    color: var(--secondary-dark);
 }
 
 .event-in .event-qty {
-    color: var(--primary-dark);
+    color: var(--secondary-dark);
 }
 
 .event-out .event-icon {
@@ -392,8 +393,7 @@ body {
 
 .dashboard-section h2 {
     font-size: 36px;
-    text-align: center;
-    margin-bottom: 60px;
+    margin-bottom: 30px;
     color: var(--text-dark);
     font-weight: 700;
 }
