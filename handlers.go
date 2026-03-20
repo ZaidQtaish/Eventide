@@ -11,7 +11,7 @@ import (
 func GetItemsHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 
-	rows, err := db.Query(ctx, "SELECT item_id, sku, name FROM items")
+	rows, err := db.Query(ctx, "SELECT id, sku, name FROM items")
 	if err != nil {
 		http.Error(w, "Query failed", http.StatusInternalServerError)
 		return
@@ -37,7 +37,7 @@ func GetInventoryHandler(w http.ResponseWriter, r *http.Request) {
 	query := `
 		SELECT s.item_id, i.name, s.current_quantity, s.last_updated
 		FROM snapshot s
-		JOIN items i ON s.item_id = i.item_id
+		JOIN items i ON s.item_id = i.id
 		ORDER BY s.item_id
 	`
 
@@ -65,10 +65,10 @@ func GetEventsHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 
 	query := `
-		SELECT e.event_id, e.item_id, e.user_id, i.name, u.username, e.event_type, e.reason_code, e.quantity_change, e.timestamp
-		FROM inventory_events e
-		JOIN items i ON e.item_id = i.item_id
-		JOIN users u ON e.user_id = u.user_id
+		SELECT e.id, e.item_id, e.user_id, i.name, u.username, e.type, e.reason_code, e.quantity_change, e.timestamp
+		FROM events e
+		JOIN items i ON e.item_id = i.id
+		JOIN users u ON e.user_id = u.id
 		ORDER BY e.timestamp DESC
 	`
 
