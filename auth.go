@@ -69,3 +69,56 @@ func generateSessionID() (string, error) {
 	}
 	return hex.EncodeToString(b), nil
 }
+
+// GetSessionUser retrieves the username from a valid session cookie; returns empty string if invalid/expired
+func GetSessionUser(r *http.Request) string {
+	cookie, err := r.Cookie(sessionCookieName)
+	if err != nil {
+		return ""
+	}
+
+	sessionMu.RLock()
+	sess, exists := sessionStore[cookie.Value]
+	sessionMu.RUnlock()
+
+	if !exists || sess.ExpiresAt.Before(time.Now()) {
+		return ""
+	}
+
+	return sess.Username
+}
+
+// RequireAuth is middleware that checks for valid session; calls next if valid, returns 401 otherwise
+func RequireAuth(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if GetSessionUser(r) == "" {
+			w.Header().Set("Content-Type", "application/json")
+			http.Error(w, `{"error":"Unauthorized"}`, http.StatusUnauthorized)
+			return
+		}
+		next(w, r)
+	}
+}
+
+// LogoutHandler clears the session cookie and deletes the session from store
+func LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie(sessionCookieName)
+	if err == nil {
+		sessionMu.Lock()
+		delete(sessionStore, cookie.Value)
+		sessionMu.Unlock()
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     sessionCookieName,
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	})
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+}
