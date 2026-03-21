@@ -1,12 +1,15 @@
 package main
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
 	"net/http"
 	"sync"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 const sessionCookieName = "session_token"
@@ -29,37 +32,50 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
-	//
-	if loginReq.Username == "admin" && loginReq.Password == "admin" {
-		sessionID, err := generateSessionID()
-		if err != nil {
-			http.Error(w, "Could not create session", http.StatusInternalServerError)
-			return
-		}
 
-		expires := time.Now().Add(sessionDuration)
-		sessionMu.Lock()
-		sessionStore[sessionID] = session{Username: loginReq.Username, ExpiresAt: expires}
-		sessionMu.Unlock()
-
-		http.SetCookie(w, &http.Cookie{
-			Name:     sessionCookieName,
-			Value:    sessionID,
-			Path:     "/",
-			Expires:  expires,
-			MaxAge:   int(sessionDuration.Seconds()),
-			HttpOnly: true,
-			SameSite: http.SameSiteLaxMode,
-			Secure:   false,
-		})
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
-	} else {
+	// Query user from database
+	var username, passwordHash string
+	err = db.QueryRow(context.Background(),
+		"SELECT username, password_hash FROM users WHERE username = $1", loginReq.Username).
+		Scan(&username, &passwordHash)
+	if err != nil {
 		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+		return
 	}
 
+	// Verify password
+	err = bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(loginReq.Password))
+	if err != nil {
+		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+		return
+	}
+
+	// Create session
+	sessionID, err := generateSessionID()
+	if err != nil {
+		http.Error(w, "Could not create session", http.StatusInternalServerError)
+		return
+	}
+
+	expires := time.Now().Add(sessionDuration)
+	sessionMu.Lock()
+	sessionStore[sessionID] = session{Username: username, ExpiresAt: expires}
+	sessionMu.Unlock()
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     sessionCookieName,
+		Value:    sessionID,
+		Path:     "/",
+		Expires:  expires,
+		MaxAge:   int(sessionDuration.Seconds()),
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		Secure:   false,
+	})
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 }
 
 func generateSessionID() (string, error) {
@@ -118,7 +134,6 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 	})
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+	// Redirect to login page
+	http.Redirect(w, r, "/login/", http.StatusSeeOther)
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 )
 
 func main() {
@@ -31,14 +32,17 @@ func main() {
 // RequireAuthPage wraps a file server and redirects to login if not authenticated
 func RequireAuthPage(next http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Allow login and static assets under /login and /static
-		if r.URL.Path == "/login/" || r.URL.Path == "/login/index.html" ||
-			r.URL.Path == "/login/login.js" || r.URL.Path == "/style.css" {
+		path := r.URL.Path
+
+		// Allow login pages and static assets without auth
+		if strings.HasPrefix(path, "/login/") ||
+			ends(path, ".css") || ends(path, ".js") ||
+			ends(path, ".png") || ends(path, ".jpg") || ends(path, ".svg") {
 			next.ServeHTTP(w, r)
 			return
 		}
 
-		// For dashboard paths, check auth
+		// Require auth for everything else
 		if GetSessionUser(r) == "" {
 			http.Redirect(w, r, "/login/", http.StatusSeeOther)
 			return
@@ -46,4 +50,9 @@ func RequireAuthPage(next http.Handler) http.HandlerFunc {
 
 		next.ServeHTTP(w, r)
 	}
+}
+
+// Helper function to check if string ends with suffix
+func ends(s, suffix string) bool {
+	return len(s) >= len(suffix) && s[len(s)-len(suffix):] == suffix
 }
