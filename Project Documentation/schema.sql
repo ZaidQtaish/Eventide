@@ -83,11 +83,11 @@ INSERT INTO suppliers (name, phone_number, email) VALUES
 
 -- Users
 INSERT INTO users (name, role, username, password_hash, phone_number) VALUES
-('Alice Johnson', 'admin', 'alice_j', 'hashed_password_1', '555-1001'),
-('Bob Smith', 'warehouse_manager', 'bob_smith', 'hashed_password_2', '555-1002'),
-('Carol Davis', 'inventory_clerk', 'carol_d', 'hashed_password_3', '555-1003'),
-('David Wilson', 'warehouse_manager', 'david_w', 'hashed_password_4', '555-1004'),
-('Emma Brown', 'inventory_clerk', 'emma_b', 'hashed_password_5', '555-1005');
+('Zaid', 'admin', 'zaid', '$2a$12$tQskx4S2i./ceRX4zNvW4OU95QZTETLJmYtMAGNL0FIrTjexs2.Fm', '555-1001'),
+('Malik', 'warehouse_manager', 'malik', '$2a$12$tQskx4S2i./ceRX4zNvW4OU95QZTETLJmYtMAGNL0FIrTjexs2.Fm', '555-1002'),
+('Rami', 'inventory_clerk', 'rami', '$2a$12$tQskx4S2i./ceRX4zNvW4OU95QZTETLJmYtMAGNL0FIrTjexs2.Fm', '555-1003'),
+('Ahmad', 'warehouse_manager', 'ahmad', '$2a$12$tQskx4S2i./ceRX4zNvW4OU95QZTETLJmYtMAGNL0FIrTjexs2.Fm', '555-1004'),
+('Mohammad', 'inventory_clerk', 'mohammad', '$2a$12$tQskx4S2i./ceRX4zNvW4OU95QZTETLJmYtMAGNL0FIrTjexs2.Fm', '555-1005');
 
 -- Items
 INSERT INTO items (name, sku, description, minimum_stock, category, supplier_id) VALUES
