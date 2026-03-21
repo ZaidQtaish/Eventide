@@ -38,3 +38,8 @@ type DailyStatement struct {
 	OutQuantity int       `json:"out_quantity"`
 	NetChange   int       `json:"net_change"`
 }
+
+type LoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}

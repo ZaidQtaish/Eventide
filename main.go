@@ -18,6 +18,7 @@ func main() {
 	http.HandleFunc("/inventory", GetInventoryHandler)
 	http.HandleFunc("/events", GetEventsHandler)
 	http.HandleFunc("/daily-statements", GetDailyStatementsHandler)
+	http.HandleFunc("/login", LoginHandler)
 	// Serve UI
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/", fs)
