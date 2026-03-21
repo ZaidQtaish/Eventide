@@ -2,9 +2,9 @@
 	const form = document.querySelector('form');
 	if (!form) return;
 
-	const usernameInput = form.querySelector('#username');
-	const passwordInput = form.querySelector('#password');
-	const submitBtn = form.querySelector('button[type="submit"]');
+	const usernameInput = document.querySelector('#username');
+	const passwordInput = document.querySelector('#password');
+	const submitBtn = document.querySelector('button[type="submit"]');
 	const messageEl = document.getElementById('auth-message');
 
 	const setMessage = (text, type) => {
