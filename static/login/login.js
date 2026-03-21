@@ -1,7 +1,8 @@
 (() => {
 	const form = document.querySelector('form');
+	if (!form) return;
 
-	const emailInput = form.querySelector('#email');
+	const usernameInput = form.querySelector('#username');
 	const passwordInput = form.querySelector('#password');
 	const submitBtn = form.querySelector('button[type="submit"]');
 	const messageEl = document.getElementById('auth-message');
@@ -23,7 +24,7 @@
 		setMessage('', '');
 		setLoading(true);
 
-		const username = emailInput?.value.trim() || '';
+		const username = usernameInput?.value.trim() || '';
 		const password = passwordInput?.value || '';
 
 		try {
