@@ -556,7 +556,7 @@ body {
 }
 
 .auth-title {
-    margin-top: 12px;
+    margin-top: 30px;
     font-size: 20px;
     font-weight: 700;
     color: var(--text-dark);
@@ -598,11 +598,9 @@ body {
 
 .auth-actions {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     margin-bottom: 16px;
-    gap: 12px;
-    flex-wrap: wrap;
 }
 
 .text-link {
