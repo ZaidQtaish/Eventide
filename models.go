@@ -15,6 +15,8 @@ type Inventory struct {
 	LastUpdated     time.Time `json:"LastUpdated"`
 	MinimumQuantity int       `json:"MinimumQuantity"`
 	SKU             string    `json:"SKU"`
+	WarehouseID     int       `json:"WarehouseID"`
+	WarehouseCode   string    `json:"WarehouseCode"`
 }
 
 type Event struct {
@@ -24,6 +26,7 @@ type Event struct {
 	ItemName       string    `json:"item_name"`
 	Username       string    `json:"username"`
 	WarehouseID    int       `json:"warehouse_id"`
+	WarehouseCode  string    `json:"warehouse_code"`
 	EventType      string    `json:"type"`
 	ReasonCode     string    `json:"reason_code"`
 	QuantityChange int       `json:"quantity_change"`
