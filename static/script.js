@@ -40,10 +40,11 @@ async function loadInventoryStats() {
         const stock = await response.json();
         const totalItems = stock.length;
         const belowMin = stock.filter(item => item.MinimumQuantity && item.CurrentQuantity < item.MinimumQuantity);
+        const uniqueWarehouses = new Set(stock.map(item => item.WarehouseCode).filter(Boolean));
 
         totalEl.textContent = totalItems;
         belowMinEl.textContent = belowMin.length;
-        warehousesEl.textContent = '5'; // static for now
+        warehousesEl.textContent = uniqueWarehouses.size || '--';
         const lastUpdated = stock.reduce((latest, item) => {
             const ts = item.LastUpdated ? new Date(item.LastUpdated) : null;
             if (!ts) return latest;
@@ -68,11 +69,13 @@ async function loadInventoryStats() {
 }
 
 function renderLowStockRow(item) {
+    const warehouseLabel = item.WarehouseCode || (item.WarehouseID ? `WH ${item.WarehouseID}` : '');
+
     return `
         <div class="low-row">
             <div>
                 <div class="low-title">${item.Name || 'Item'}</div>
-                <div class="low-meta">SKU: ${item.SKU || 'n/a'}</div>
+                <div class="low-meta">SKU: ${item.SKU || 'n/a'}${warehouseLabel ? ` • ${warehouseLabel}` : ''}</div>
             </div>
             <div class="low-qty">
                 <span class="pill danger">${item.CurrentQuantity ?? 0} / ${item.MinimumQuantity ?? '-'} min</span>
@@ -86,7 +89,8 @@ function renderEventRow(evt) {
     const directionClass = isInbound ? 'event-in' : 'event-out';
     const sign = isInbound ? '+' : '-';
     const icon = isInbound ? '⬆' : '⬇';
-    const warehouse = evt.warehouse_id ? ` • WH ${evt.warehouse_id}` : '';
+    const warehouseLabel = evt.warehouse_code || (evt.warehouse_id ? `WH ${evt.warehouse_id}` : '');
+    const warehouse = warehouseLabel ? ` • ${warehouseLabel}` : '';
 
     return `
         <div class="event-row ${directionClass}">
