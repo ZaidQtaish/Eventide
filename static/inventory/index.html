@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Inventory Snapshots</title>
+    <link rel="stylesheet" href="../style.css" />
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container nav-container">
+            <div class="logo">Eventide</div>
+            <ul class="nav-links">
+                <li><a href="/">Dashboard</a></li>
+                <li><a href="/logout">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="dashboard-section">
+        <div class="container">
+            <div class="dashboard-header">
+                <div>
+                    <h2>Inventory Snapshots</h2>
+                    <p class="section-subtitle">Historical inventory states over time</p>
+                </div>
+            </div>
+
+            <!-- Filtering -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h3>Filtering</h3>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+                    
+                    <input id="date-filter" class="form-control" type="date" style="width: 180px;" />
+                    
+                    <input id="query-filter" class="form-control" type="search"
+                        placeholder="Search by product or snapshot ID"
+                        style="flex: 1; min-width: 220px;" />
+
+                    <button id="clear-filter" class="cta-btn"
+                        style="background: var(--bg-secondary); color: var(--text-dark); border: 1px solid var(--border);">
+                        Clear
+                    </button>
+                </div>
+            </div>
+
+            <!-- Snapshot List -->
+            <div class="panel" style="margin-bottom: 20px;">
+                <div class="panel-header">
+                    <h3>Snapshots</h3>
+                    <span class="pill">Auto-saved</span>
+                </div>
+
+                <div id="snapshots-list" class="events-container">
+                    <p class="loading">Loading snapshots...</p>
+                </div>
+            </div>
+
+           
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 Eventide. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="snapshots.js"></script>
+</body>
+
+</html>
