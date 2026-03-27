@@ -13,102 +13,105 @@
             <div class="logo">Eventide</div>
             <ul class="nav-links">
                 <li><a href="#features">Features</a></li>
-                <li><a href="#dashboard">Inventory</a></li>
+                <li><a href="#dashboard">Overview</a></li>
+                <li><a href="/inventory/">Inventory</a></li>
+                <li><a href="/events/">Events</a></li>
                 <li><a href="/logout">Logout</a></li>
-                  <li><a href="/events/">Events</a></li>
             </ul>
         </div>
     </nav>
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="container">
-            <div class="hero-content">
-                <h1>Smart Inventory Management Made Simple</h1>
-                <p class="subtitle">Efficient inventory tracking with event sourcing</p>
-                <button class="cta-btn primary" onclick="scrollToSection('dashboard')">View Dashboard</button>
-            </div>
-        </div>
-    </section>
-
-    <!-- Features Section -->
-    <section id="features" class="features">
-        <div class="container">
-            <h2>Powerful Features</h2>
-            <p class="section-subtitle">Everything you need to manage inventory effectively</p>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">📦</div>
-                    <h3>Event Sourcing</h3>
-                    <p>Track all inventory changes in real-time with complete event history</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🤖</div>
-                    <h3>AI Stock Forecasting</h3>
-                    <p>Predict incoming and outgoing stock for the next day with AI precision</p>
-                </div>
-                <div class="feature-card">
-
-                    <div class="feature-icon">🔒</div>
-                    <h3>Secure & Reliable</h3>
-                    <p>Enterprise-grade security and reliability for your data</p>
+    <main class="page-content">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1>Smart Inventory Management Made Simple</h1>
+                    <p class="subtitle">Efficient inventory tracking with event sourcing</p>
+                    <button class="cta-btn primary" onclick="scrollToSection('dashboard')">View Dashboard</button>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Dashboard Section -->
-    <section id="dashboard" class="dashboard-section">
-        <div class="container">
-            <div class="dashboard-header">
-                <div>
-                    <h2>Dashboard</h2>
-                    <p class="section-subtitle">Live pulse of your inventory</p>
-                </div>
-            </div>
-
-            <div class="cards-grid">
-                <div class="stat-card">
-                    <div class="stat-label">Total Items</div>
-                    <div class="stat-value" id="stat-total-items">--</div>
-                </div>
-                <div class="stat-card warning">
-                    <div class="stat-label">Below Minimum</div>
-                    <div class="stat-value" id="stat-below-min">--</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Warehouses</div>
-                    <div class="stat-value" id="stat-warehouses">--</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Last Update</div>
-                    <div class="stat-value dashboard-date" id="stat-last-update">--</div>
-                </div>
-            </div>
-
-            <div class="dashboard-split">
-                <div class="panel">
-                    <div class="panel-header">
-                        <h3>Recent Stock Changes</h3>
-                        <span class="pill">Last 5</span>
+        <!-- Features Section -->
+        <section id="features" class="features">
+            <div class="container">
+                <h2>Powerful Features</h2>
+                <p class="section-subtitle">Everything you need to manage inventory effectively</p>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">📦</div>
+                        <h3>Event Sourcing</h3>
+                        <p>Track all inventory changes in real-time with complete event history</p>
                     </div>
-                    <div id="recent-events" class="events-container">
-                        <p class="loading">Loading recent activity...</p>
+                    <div class="feature-card">
+                        <div class="feature-icon">🤖</div>
+                        <h3>AI Stock Forecasting</h3>
+                        <p>Predict incoming and outgoing stock for the next day with AI precision</p>
                     </div>
-                </div>
+                    <div class="feature-card">
 
-                <div class="panel">
-                    <div class="panel-header">
-                        <h3>Low Stock</h3>
-                        <span class="pill warning">Below min</span>
-                    </div>
-                    <div id="low-stock" class="low-stock-list">
-                        <p class="loading">Loading low stock...</p>
+                        <div class="feature-icon">🔒</div>
+                        <h3>Secure & Reliable</h3>
+                        <p>Enterprise-grade security and reliability for your data</p>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
+
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="dashboard-section">
+            <div class="container">
+                <div class="dashboard-header">
+                    <div>
+                        <h2>Dashboard</h2>
+                        <p class="section-subtitle">Live pulse of your inventory</p>
+                    </div>
+                </div>
+
+                <div class="cards-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Items</div>
+                        <div class="stat-value" id="stat-total-items">--</div>
+                    </div>
+                    <div class="stat-card warning">
+                        <div class="stat-label">Below Minimum</div>
+                        <div class="stat-value" id="stat-below-min">--</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Warehouses</div>
+                        <div class="stat-value" id="stat-warehouses">--</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Last Update</div>
+                        <div class="stat-value dashboard-date" id="stat-last-update">--</div>
+                    </div>
+                </div>
+
+                <div class="dashboard-split">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h3>Recent Stock Changes</h3>
+                            <span class="pill">Last 5</span>
+                        </div>
+                        <div id="recent-events" class="events-container">
+                            <p class="loading">Loading recent activity...</p>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h3>Low Stock</h3>
+                            <span class="pill warning">Below min</span>
+                        </div>
+                        <div id="low-stock" class="low-stock-list">
+                            <p class="loading">Loading low stock...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
 
     <!-- Footer -->
     <footer class="footer">
