@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Inventory Snapshots</title>
+    <title>Current Stock</title>
     <link rel="stylesheet" href="../style.css" />
 </head>
 
@@ -25,8 +25,8 @@
             <div class="container">
                 <div class="dashboard-header">
                     <div>
-                        <h2>Inventory Snapshots</h2>
-                        <p class="section-subtitle">Historical inventory states over time</p>
+                        <h2>Current Stock</h2>
+                        <p class="section-subtitle">Live inventory across warehouses</p>
                     </div>
                 </div>
 
@@ -35,27 +35,32 @@
                     <div class="panel-header">
                         <h3>Filtering</h3>
                     </div>
-                    <div class="filter-row">
-                        <input id="date-filter" class="form-control" type="date" />
-
-                        <input id="query-filter" class="form-control" type="search"
-                            placeholder="Search by item, SKU, warehouse, or ID" />
-
-                        <button id="clear-filter" class="cta-btn ghost">
-                            Clear
-                        </button>
+                    <div class="filter-row filters-with-clear">
+                        <select id="warehouse-filter" class="form-control">
+                            <option value="">Warehouses</option>
+                            <option value="WH-WEST">WH-WEST</option>
+                            <option value="WH-EAST">WH-EAST</option>
+                            <option value="WH-SOUTH">WH-SOUTH</option>
+                            <option value="WH-NORTH">WH-NORTH</option>
+                            <option value="WH-CENTRAL">WH-CENTRAL</option>
+                        </select>
+                        <input id="item-sku-filter" class="form-control" type="search"
+                            placeholder="Search by item or SKU" />
+                        <div class="filters-clear">
+                            <button id="clear-filter" class="cta-btn ghost">Clear</button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Snapshot List -->
+                <!-- Current Stock List -->
                 <div class="panel" style="margin-bottom: 20px;">
                     <div class="panel-header">
-                        <h3>Snapshots</h3>
-                        <span class="pill">Auto-saved</span>
+                        <h3>Current Stock</h3>
+                        <span class="pill">Live</span>
                     </div>
 
                     <div id="snapshots-list" class="events-container">
-                        <p class="loading">Loading snapshots...</p>
+                        <p class="loading">Loading stock...</p>
                     </div>
                 </div>
             </div>
