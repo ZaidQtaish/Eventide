@@ -29,6 +29,72 @@
                         <h2>Event Log</h2>
                         <p class="section-subtitle">Immutable inventory activity history</p>
                     </div>
+                    <div class="dashboard-header-actions">
+                        <button id="open-create-event-modal" class="cta-btn primary" type="button">Record Event</button>
+                    </div>
+                </div>
+
+                <div id="create-event-modal" class="event-modal is-hidden" aria-hidden="true">
+                    <div class="event-modal-backdrop" data-close-modal="true"></div>
+                    <div class="event-modal-card panel" role="dialog" aria-modal="true" aria-labelledby="create-event-title">
+                        <div class="panel-header">
+                            <h3 id="create-event-title">Record Event</h3>
+                            <button id="close-create-event-modal" class="cta-btn ghost event-modal-close" type="button" aria-label="Close event form">Close</button>
+                        </div>
+
+                        <form id="create-event-form" class="event-form-grid">
+                            <div class="form-group">
+                                <label for="event-type">Event Type</label>
+                                <select id="event-type" class="form-control" required>
+                                    <option value="inbound">Inbound</option>
+                                    <option value="outbound">Outbound</option>
+                                    <option value="adjustment">Adjustment</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="event-item">Item</label>
+                                <select id="event-item" class="form-control" required>
+                                    <option value="">Select item</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="event-warehouse">Warehouse</label>
+                                <select id="event-warehouse" class="form-control" required>
+                                    <option value="">Select warehouse</option>
+                                    <option value="1">WH-CENTRAL</option>
+                                    <option value="2">WH-NORTH</option>
+                                    <option value="3">WH-SOUTH</option>
+                                    <option value="4">WH-EAST</option>
+                                    <option value="5">WH-WEST</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="event-qty">Quantity Change</label>
+                                <input id="event-qty" class="form-control" type="number" required placeholder="e.g. 12 or -5" />
+                            </div>
+
+                            <div class="form-group">
+                                <label for="event-reason">Reason Code</label>
+                                <select id="event-reason" class="form-control" required>
+                                    <option value="">Select reason</option>
+                                    <option value="PURCHASE">PURCHASE</option>
+                                    <option value="SALE">SALE</option>
+                                    <option value="RETURN">RETURN</option>
+                                    <option value="DAMAGE">DAMAGE</option>
+                                    <option value="STOCK_CHECK">STOCK_CHECK</option>
+                                </select>
+                            </div>
+
+                            <div class="event-form-actions">
+                                <button id="create-event-btn" type="submit" class="cta-btn primary">Record Event</button>
+                            </div>
+
+                            <p id="event-form-message" class="form-message" aria-live="polite"></p>
+                        </form>
+                    </div>
                 </div>
 
                 <div class="panel">
@@ -89,6 +155,7 @@
         </div>
     </footer>
     <script src="events.js"></script>
+    <script src="create-event.js"></script>
 </body>
 
 </html>
