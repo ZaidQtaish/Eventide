@@ -222,17 +222,6 @@ func validateAndPlanEvent(req CreateEventRequest) (eventPlan, error) {
 			eventType:   eventType,
 			reason:      req.ReasonCode,
 		}}}, nil
-	case "transfer":
-		if req.ToWarehouseID <= 0 {
-			return eventPlan{}, &httpError{status: http.StatusBadRequest, msg: "to_warehouse_id is required for transfer"}
-		}
-		if req.ToWarehouseID == req.WarehouseID {
-			return eventPlan{}, &httpError{status: http.StatusBadRequest, msg: "to_warehouse_id must differ from warehouse_id"}
-		}
-		return eventPlan{mutations: []eventMutation{
-			{itemID: req.ItemID, warehouseID: req.WarehouseID, delta: -absQty, eventType: eventType, reason: req.ReasonCode},
-			{itemID: req.ItemID, warehouseID: req.ToWarehouseID, delta: absQty, eventType: eventType, reason: req.ReasonCode},
-		}}, nil
 	default:
 		return eventPlan{}, &httpError{status: http.StatusBadRequest, msg: "invalid type"}
 	}

@@ -4,8 +4,9 @@
     const userFilter = document.getElementById('user-filter');
     const warehouseFilter = document.getElementById('warehouse-filter');
     const queryInput = document.getElementById('item-sku-filter');
-    const searchForm = document.getElementById('search-form');
     const clearFilter = document.getElementById('clear-filter');
+
+    let cachedEvents = [];
 
     function formatDate(dateString) {
         const d = new Date(dateString);
@@ -89,34 +90,49 @@
         });
     }
 
-    async function load() {
+    async function loadEvents() {
         if (list) list.innerHTML = '<p class="loading">Loading events...</p>';
+        const res = await fetch('/events');
+        if (!res.ok) throw new Error('Fetch failed');
+        cachedEvents = await res.json();
+
+        cachedEvents.forEach(evt => {
+            if (!evt.item_name && evt.item_id) evt.item_name = `Item #${evt.item_id}`;
+        });
+        render(cachedEvents);
+    }
+
+    function bindEvents() {
+        typeFilter?.addEventListener('change', () => render(cachedEvents));
+        userFilter?.addEventListener('change', () => render(cachedEvents));
+        warehouseFilter?.addEventListener('change', () => render(cachedEvents));
+        queryInput?.addEventListener('input', () => render(cachedEvents));
+
+        clearFilter?.addEventListener('click', () => {
+            if (typeFilter) typeFilter.value = '';
+            if (userFilter) userFilter.value = '';
+            if (warehouseFilter) warehouseFilter.value = '';
+            if (queryInput) queryInput.value = '';
+            render(cachedEvents);
+        });
+
+        window.addEventListener('eventide:events:refresh', () => {
+            loadEvents().catch((err) => {
+                if (list) list.innerHTML = `<p class="loading">Error loading events: ${err.message}</p>`;
+                console.error(err);
+            });
+        });
+    }
+
+    async function init() {
+        bindEvents();
         try {
-            const res = await fetch('/events');
-            if (!res.ok) throw new Error('Fetch failed');
-            const data = await res.json();
-
-            data.forEach(evt => {
-                if (!evt.item_name && evt.item_id) evt.item_name = `Item #${evt.item_id}`;
-            });
-            render(data);
-
-            typeFilter?.addEventListener('change', () => render(data));
-            userFilter?.addEventListener('change', () => render(data));
-            warehouseFilter?.addEventListener('change', () => render(data));
-            queryInput?.addEventListener('input', () => render(data));
-            searchForm?.addEventListener('submit', (e) => { e.preventDefault(); render(data); });
-            clearFilter?.addEventListener('click', () => {
-                if (typeFilter) typeFilter.value = '';
-                if (userFilter) userFilter.value = '';
-                if (warehouseFilter) warehouseFilter.value = '';
-                if (queryInput) queryInput.value = '';
-                render(data);
-            });
+            await loadEvents();
         } catch (err) {
             if (list) list.innerHTML = `<p class="loading">Error loading events: ${err.message}</p>`;
             console.error(err);
         }
     }
-    load();
+
+    init();
 })();

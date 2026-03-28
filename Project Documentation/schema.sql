@@ -46,10 +46,10 @@ CREATE TABLE snapshot (
 -- Create Events table
 CREATE TABLE events (
     id SERIAL PRIMARY KEY,
-    type VARCHAR(50) NOT NULL,
+    type VARCHAR(50) NOT NULL CHECK (type IN ('inbound', 'outbound', 'adjustment')),
     item_id INT NOT NULL REFERENCES items(id),
     quantity_change INT NOT NULL,
-    reason_code VARCHAR(50),
+    reason_code VARCHAR(50) NOT NULL CHECK (reason_code IN ('PURCHASE', 'SALE', 'RETURN', 'DAMAGE', 'STOCK_CHECK')),
     user_id INT REFERENCES users(id),
     warehouse_id INT REFERENCES warehouses(id),
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -133,16 +133,14 @@ INSERT INTO events (type, item_id, quantity_change, reason_code, user_id, wareho
 ('inbound', 1, 25, 'PURCHASE', 1, 1, CURRENT_TIMESTAMP - INTERVAL '7 days'),
 ('inbound', 2, 150, 'PURCHASE', 2, 1, CURRENT_TIMESTAMP - INTERVAL '6 days'),
 ('outbound', 1, 5, 'SALE', 3, 1, CURRENT_TIMESTAMP - INTERVAL '5 days'),
-('adjustment', 3, 10, 'RESTOCK', 1, 1, CURRENT_TIMESTAMP - INTERVAL '4 days'),
+('adjustment', 3, 10, 'STOCK_CHECK', 1, 1, CURRENT_TIMESTAMP - INTERVAL '4 days'),
 ('inbound', 4, 15, 'PURCHASE', 4, 1, CURRENT_TIMESTAMP - INTERVAL '3 days'),
 ('outbound', 2, 25, 'SALE', 3, 1, CURRENT_TIMESTAMP - INTERVAL '2 days'),
-('transfer', 1, -5, 'WAREHOUSE_TRANSFER', 2, 1, CURRENT_TIMESTAMP - INTERVAL '1 days'),
 ('inbound', 5, 35, 'PURCHASE', 1, 1, CURRENT_TIMESTAMP),
 ('outbound', 3, 30, 'SALE', 5, 2, CURRENT_TIMESTAMP),
 ('adjustment', 6, 5, 'STOCK_CHECK', 4, 1, CURRENT_TIMESTAMP - INTERVAL '12 hours'),
 ('inbound', 7, 5, 'PURCHASE', 2, 1, CURRENT_TIMESTAMP - INTERVAL '10 hours'),
 ('outbound', 4, 2, 'SALE', 3, 2, CURRENT_TIMESTAMP - INTERVAL '8 hours'),
-('transfer', 2, 15, 'WAREHOUSE_TRANSFER', 1, 2, CURRENT_TIMESTAMP - INTERVAL '6 hours'),
 ('inbound', 8, 300, 'PURCHASE', 4, 1, CURRENT_TIMESTAMP - INTERVAL '5 hours'),
 ('outbound', 5, 8, 'SALE', 5, 1, CURRENT_TIMESTAMP - INTERVAL '3 hours');
 
