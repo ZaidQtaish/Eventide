@@ -414,7 +414,7 @@ a {
 
 /* Dashboard Section */
 .dashboard-section {
-    padding: 100px 24px;
+    padding: 64px 24px;
     background: var(--bg-secondary);
     border-top: 1px solid var(--border);
 }
@@ -453,10 +453,6 @@ a {
     background: var(--bg-secondary);
     color: var(--text-dark);
     border: 1px solid var(--border);
-}
-
-.panel + .panel {
-    margin-top: 20px;
 }
 
 .dashboard-section h2 {
@@ -571,7 +567,7 @@ a {
 
     .features,
     .dashboard-section {
-        padding: 60px 20px;
+        padding: 48px 20px;
     }
 
     .dashboard-demo {

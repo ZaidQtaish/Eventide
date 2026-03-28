@@ -5,7 +5,22 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
+
+	"github.com/jackc/pgx/v5"
 )
+
+// EventsHandler routes GET/POST for /events
+func EventsHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		GetEventsHandler(w, r)
+	case http.MethodPost:
+		CreateEventHandler(w, r)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
 
 // GetItemsHandler retrieves all items from the database
 func GetItemsHandler(w http.ResponseWriter, r *http.Request) {
@@ -92,6 +107,154 @@ func GetEventsHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(events)
+}
+
+func CreateEventHandler(w http.ResponseWriter, r *http.Request) {
+	var req CreateEventRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	username := GetSessionUser(r)
+	if username == "" {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	ctx := r.Context()
+
+	// Resolve user ID from username
+	var userID int
+	if err := db.QueryRow(ctx, "SELECT id FROM users WHERE username = $1", username).Scan(&userID); err != nil {
+		http.Error(w, "User not found", http.StatusUnauthorized)
+		return
+	}
+
+	eventType := strings.ToLower(strings.TrimSpace(req.EventType))
+	if eventType == "" {
+		http.Error(w, "type is required", http.StatusBadRequest)
+		return
+	}
+
+	if req.ItemID <= 0 {
+		http.Error(w, "item_id is required", http.StatusBadRequest)
+		return
+	}
+
+	switch eventType {
+	case "inbound", "outbound", "adjustment", "transfer":
+	default:
+		http.Error(w, "invalid type", http.StatusBadRequest)
+		return
+	}
+
+	if req.QuantityChange == 0 {
+		http.Error(w, "quantity_change must be non-zero", http.StatusBadRequest)
+		return
+	}
+
+	if req.WarehouseID <= 0 {
+		http.Error(w, "warehouse_id is required", http.StatusBadRequest)
+		return
+	}
+
+	tx, err := db.Begin(ctx)
+	if err != nil {
+		http.Error(w, "Could not start transaction", http.StatusInternalServerError)
+		return
+	}
+	defer tx.Rollback(ctx)
+
+	applyChange := func(itemID, warehouseID, delta int, typ, reason string) error {
+		current := 0
+		row := tx.QueryRow(ctx, "SELECT current_quantity FROM snapshot WHERE item_id = $1 AND warehouse_id = $2 FOR UPDATE", itemID, warehouseID)
+		if err := row.Scan(&current); err != nil {
+			if err != pgx.ErrNoRows {
+				return err
+			}
+			current = 0
+		}
+
+		if current+delta < 0 {
+			return &httpError{status: http.StatusBadRequest, msg: "insufficient stock"}
+		}
+
+		// Record event; database trigger updates snapshot
+		_, err := tx.Exec(ctx, "INSERT INTO events (type, item_id, quantity_change, reason_code, user_id, warehouse_id) VALUES ($1, $2, $3, $4, $5, $6)", typ, itemID, delta, reason, userID, warehouseID)
+		return err
+	}
+
+	absQty := func(v int) int {
+		if v < 0 {
+			return -v
+		}
+		return v
+	}
+
+	switch eventType {
+	case "inbound":
+		delta := absQty(req.QuantityChange)
+		if err := applyChange(req.ItemID, req.WarehouseID, delta, eventType, req.ReasonCode); err != nil {
+			writeHTTPErr(w, err)
+			return
+		}
+	case "outbound":
+		delta := -absQty(req.QuantityChange)
+		if err := applyChange(req.ItemID, req.WarehouseID, delta, eventType, req.ReasonCode); err != nil {
+			writeHTTPErr(w, err)
+			return
+		}
+	case "adjustment":
+		delta := req.QuantityChange
+		if err := applyChange(req.ItemID, req.WarehouseID, delta, eventType, req.ReasonCode); err != nil {
+			writeHTTPErr(w, err)
+			return
+		}
+	case "transfer":
+		if req.ToWarehouseID <= 0 {
+			http.Error(w, "to_warehouse_id is required for transfer", http.StatusBadRequest)
+			return
+		}
+		if req.ToWarehouseID == req.WarehouseID {
+			http.Error(w, "to_warehouse_id must differ from warehouse_id", http.StatusBadRequest)
+			return
+		}
+		qty := absQty(req.QuantityChange)
+		if err := applyChange(req.ItemID, req.WarehouseID, -qty, eventType, req.ReasonCode); err != nil {
+			writeHTTPErr(w, err)
+			return
+		}
+		if err := applyChange(req.ItemID, req.ToWarehouseID, qty, eventType, req.ReasonCode); err != nil {
+			writeHTTPErr(w, err)
+			return
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		http.Error(w, "Could not commit transaction", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+}
+
+// httpError conveys known error cases with HTTP status
+type httpError struct {
+	status int
+	msg    string
+}
+
+func (e *httpError) Error() string { return e.msg }
+
+func writeHTTPErr(w http.ResponseWriter, err error) {
+	if he, ok := err.(*httpError); ok {
+		http.Error(w, he.msg, he.status)
+		return
+	}
+	http.Error(w, "Server error", http.StatusInternalServerError)
 }
 
 func GetDailyStatementsHandler(w http.ResponseWriter, r *http.Request) {

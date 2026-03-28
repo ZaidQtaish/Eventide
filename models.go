@@ -47,6 +47,15 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
+type CreateEventRequest struct {
+	ItemID         int    `json:"item_id"`
+	WarehouseID    int    `json:"warehouse_id"`
+	ToWarehouseID  int    `json:"to_warehouse_id,omitempty"`
+	QuantityChange int    `json:"quantity_change"`
+	EventType      string `json:"type"`
+	ReasonCode     string `json:"reason_code"`
+}
+
 type session struct {
 	Username  string
 	ExpiresAt time.Time
