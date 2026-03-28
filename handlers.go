@@ -110,6 +110,11 @@ func GetEventsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateEventHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 	var req CreateEventRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
@@ -123,39 +128,15 @@ func CreateEventHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-
-	// Resolve user ID from username
-	var userID int
-	if err := db.QueryRow(ctx, "SELECT id FROM users WHERE username = $1", username).Scan(&userID); err != nil {
+	userID, err := lookupUserID(ctx, username)
+	if err != nil {
 		http.Error(w, "User not found", http.StatusUnauthorized)
 		return
 	}
 
-	eventType := strings.ToLower(strings.TrimSpace(req.EventType))
-	if eventType == "" {
-		http.Error(w, "type is required", http.StatusBadRequest)
-		return
-	}
-
-	if req.ItemID <= 0 {
-		http.Error(w, "item_id is required", http.StatusBadRequest)
-		return
-	}
-
-	switch eventType {
-	case "inbound", "outbound", "adjustment", "transfer":
-	default:
-		http.Error(w, "invalid type", http.StatusBadRequest)
-		return
-	}
-
-	if req.QuantityChange == 0 {
-		http.Error(w, "quantity_change must be non-zero", http.StatusBadRequest)
-		return
-	}
-
-	if req.WarehouseID <= 0 {
-		http.Error(w, "warehouse_id is required", http.StatusBadRequest)
+	plan, err := validateAndPlanEvent(req)
+	if err != nil {
+		writeHTTPErr(w, err)
 		return
 	}
 
@@ -166,66 +147,8 @@ func CreateEventHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tx.Rollback(ctx)
 
-	applyChange := func(itemID, warehouseID, delta int, typ, reason string) error {
-		current := 0
-		row := tx.QueryRow(ctx, "SELECT current_quantity FROM snapshot WHERE item_id = $1 AND warehouse_id = $2 FOR UPDATE", itemID, warehouseID)
-		if err := row.Scan(&current); err != nil {
-			if err != pgx.ErrNoRows {
-				return err
-			}
-			current = 0
-		}
-
-		if current+delta < 0 {
-			return &httpError{status: http.StatusBadRequest, msg: "insufficient stock"}
-		}
-
-		// Record event; database trigger updates snapshot
-		_, err := tx.Exec(ctx, "INSERT INTO events (type, item_id, quantity_change, reason_code, user_id, warehouse_id) VALUES ($1, $2, $3, $4, $5, $6)", typ, itemID, delta, reason, userID, warehouseID)
-		return err
-	}
-
-	absQty := func(v int) int {
-		if v < 0 {
-			return -v
-		}
-		return v
-	}
-
-	switch eventType {
-	case "inbound":
-		delta := absQty(req.QuantityChange)
-		if err := applyChange(req.ItemID, req.WarehouseID, delta, eventType, req.ReasonCode); err != nil {
-			writeHTTPErr(w, err)
-			return
-		}
-	case "outbound":
-		delta := -absQty(req.QuantityChange)
-		if err := applyChange(req.ItemID, req.WarehouseID, delta, eventType, req.ReasonCode); err != nil {
-			writeHTTPErr(w, err)
-			return
-		}
-	case "adjustment":
-		delta := req.QuantityChange
-		if err := applyChange(req.ItemID, req.WarehouseID, delta, eventType, req.ReasonCode); err != nil {
-			writeHTTPErr(w, err)
-			return
-		}
-	case "transfer":
-		if req.ToWarehouseID <= 0 {
-			http.Error(w, "to_warehouse_id is required for transfer", http.StatusBadRequest)
-			return
-		}
-		if req.ToWarehouseID == req.WarehouseID {
-			http.Error(w, "to_warehouse_id must differ from warehouse_id", http.StatusBadRequest)
-			return
-		}
-		qty := absQty(req.QuantityChange)
-		if err := applyChange(req.ItemID, req.WarehouseID, -qty, eventType, req.ReasonCode); err != nil {
-			writeHTTPErr(w, err)
-			return
-		}
-		if err := applyChange(req.ItemID, req.ToWarehouseID, qty, eventType, req.ReasonCode); err != nil {
+	for _, m := range plan.mutations {
+		if err := applyEventMutation(ctx, tx, m, userID); err != nil {
 			writeHTTPErr(w, err)
 			return
 		}
@@ -241,10 +164,96 @@ func CreateEventHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 }
 
-// httpError conveys known error cases with HTTP status
-type httpError struct {
-	status int
-	msg    string
+// lookupUserID resolves a username to its database id.
+func lookupUserID(ctx context.Context, username string) (int, error) {
+	var userID int
+	if err := db.QueryRow(ctx, "SELECT id FROM users WHERE username = $1", username).Scan(&userID); err != nil {
+		return 0, err
+	}
+	return userID, nil
+}
+
+func validateAndPlanEvent(req CreateEventRequest) (eventPlan, error) {
+	eventType := strings.ToLower(strings.TrimSpace(req.EventType))
+	if eventType == "" {
+		return eventPlan{}, &httpError{status: http.StatusBadRequest, msg: "type is required"}
+	}
+
+	if req.ItemID <= 0 {
+		return eventPlan{}, &httpError{status: http.StatusBadRequest, msg: "item_id is required"}
+	}
+
+	if req.QuantityChange == 0 {
+		return eventPlan{}, &httpError{status: http.StatusBadRequest, msg: "quantity_change must be non-zero"}
+	}
+
+	if req.WarehouseID <= 0 {
+		return eventPlan{}, &httpError{status: http.StatusBadRequest, msg: "warehouse_id is required"}
+	}
+
+	absQty := req.QuantityChange
+	if absQty < 0 {
+		absQty = -absQty
+	}
+
+	switch eventType {
+	case "inbound":
+		return eventPlan{mutations: []eventMutation{{
+			itemID:      req.ItemID,
+			warehouseID: req.WarehouseID,
+			delta:       absQty,
+			eventType:   eventType,
+			reason:      req.ReasonCode,
+		}}}, nil
+	case "outbound":
+		return eventPlan{mutations: []eventMutation{{
+			itemID:      req.ItemID,
+			warehouseID: req.WarehouseID,
+			delta:       -absQty,
+			eventType:   eventType,
+			reason:      req.ReasonCode,
+		}}}, nil
+	case "adjustment":
+		return eventPlan{mutations: []eventMutation{{
+			itemID:      req.ItemID,
+			warehouseID: req.WarehouseID,
+			delta:       req.QuantityChange,
+			eventType:   eventType,
+			reason:      req.ReasonCode,
+		}}}, nil
+	case "transfer":
+		if req.ToWarehouseID <= 0 {
+			return eventPlan{}, &httpError{status: http.StatusBadRequest, msg: "to_warehouse_id is required for transfer"}
+		}
+		if req.ToWarehouseID == req.WarehouseID {
+			return eventPlan{}, &httpError{status: http.StatusBadRequest, msg: "to_warehouse_id must differ from warehouse_id"}
+		}
+		return eventPlan{mutations: []eventMutation{
+			{itemID: req.ItemID, warehouseID: req.WarehouseID, delta: -absQty, eventType: eventType, reason: req.ReasonCode},
+			{itemID: req.ItemID, warehouseID: req.ToWarehouseID, delta: absQty, eventType: eventType, reason: req.ReasonCode},
+		}}, nil
+	default:
+		return eventPlan{}, &httpError{status: http.StatusBadRequest, msg: "invalid type"}
+	}
+}
+
+// applyEventMutation checks stock level then inserts event row; snapshot updates via DB trigger.
+func applyEventMutation(ctx context.Context, tx pgx.Tx, m eventMutation, userID int) error {
+	current := 0
+	row := tx.QueryRow(ctx, "SELECT current_quantity FROM snapshot WHERE item_id = $1 AND warehouse_id = $2 FOR UPDATE", m.itemID, m.warehouseID)
+	if err := row.Scan(&current); err != nil {
+		if err != pgx.ErrNoRows {
+			return err
+		}
+		current = 0
+	}
+
+	if current+m.delta < 0 {
+		return &httpError{status: http.StatusBadRequest, msg: "insufficient stock"}
+	}
+
+	_, err := tx.Exec(ctx, "INSERT INTO events (type, item_id, quantity_change, reason_code, user_id, warehouse_id) VALUES ($1, $2, $3, $4, $5, $6)", m.eventType, m.itemID, m.delta, m.reason, userID, m.warehouseID)
+	return err
 }
 
 func (e *httpError) Error() string { return e.msg }
