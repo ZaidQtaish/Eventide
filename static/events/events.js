@@ -5,8 +5,13 @@
     const warehouseFilter = document.getElementById('warehouse-filter');
     const queryInput = document.getElementById('item-sku-filter');
     const clearFilter = document.getElementById('clear-filter');
+    const prevPageBtn = document.getElementById('events-prev-page');
+    const nextPageBtn = document.getElementById('events-next-page');
+    const pageInfo = document.getElementById('events-page-info');
 
     let cachedEvents = [];
+    let currentPage = 1;
+    const PAGE_SIZE = 8;
 
     function formatDate(dateString) {
         const d = new Date(dateString);
@@ -50,6 +55,7 @@
         if (!list) return;
         if (!events || events.length === 0) {
             list.innerHTML = '<p class="loading">No inventory events found.</p>';
+            updatePaginationUI(0);
             return;
         }
 
@@ -57,11 +63,19 @@
 
         if (filtered.length === 0) {
             list.innerHTML = '<p class="loading">No matching events for current filters.</p>';
+            updatePaginationUI(0);
             return;
         }
 
+        const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+        if (currentPage > totalPages) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+
+        const start = (currentPage - 1) * PAGE_SIZE;
+        const paginated = filtered.slice(start, start + PAGE_SIZE);
+
         list.innerHTML = '';
-        filtered.forEach(evt => {
+        paginated.forEach(evt => {
             const row = document.createElement('div');
             const badgeType = getEventBadgeType(evt.type);
             row.className = `event-row ${badgeType}`;
@@ -87,6 +101,24 @@
 
             list.appendChild(row);
         });
+
+        updatePaginationUI(totalPages);
+    }
+
+    function updatePaginationUI(totalPages) {
+        const hasPages = totalPages > 0;
+        const safeTotal = hasPages ? totalPages : 1;
+        const safeCurrent = hasPages ? currentPage : 1;
+
+        if (pageInfo) {
+            pageInfo.textContent = `Page ${safeCurrent} of ${safeTotal}`;
+        }
+        if (prevPageBtn) {
+            prevPageBtn.disabled = !hasPages || safeCurrent <= 1;
+        }
+        if (nextPageBtn) {
+            nextPageBtn.disabled = !hasPages || safeCurrent >= safeTotal;
+        }
     }
 
     async function loadEvents() {
@@ -102,20 +134,37 @@
     }
 
     function bindEvents() {
-        typeFilter?.addEventListener('change', () => render(cachedEvents));
-        userFilter?.addEventListener('change', () => render(cachedEvents));
-        warehouseFilter?.addEventListener('change', () => render(cachedEvents));
-        queryInput?.addEventListener('input', () => render(cachedEvents));
+        const rerenderFromFirstPage = () => {
+            currentPage = 1;
+            render(cachedEvents);
+        };
+
+        typeFilter?.addEventListener('change', rerenderFromFirstPage);
+        userFilter?.addEventListener('change', rerenderFromFirstPage);
+        warehouseFilter?.addEventListener('change', rerenderFromFirstPage);
+        queryInput?.addEventListener('input', rerenderFromFirstPage);
+
+        prevPageBtn?.addEventListener('click', () => {
+            currentPage -= 1;
+            render(cachedEvents);
+        });
+
+        nextPageBtn?.addEventListener('click', () => {
+            currentPage += 1;
+            render(cachedEvents);
+        });
 
         clearFilter?.addEventListener('click', () => {
             if (typeFilter) typeFilter.value = '';
             if (userFilter) userFilter.value = '';
             if (warehouseFilter) warehouseFilter.value = '';
             if (queryInput) queryInput.value = '';
+            currentPage = 1;
             render(cachedEvents);
         });
 
         window.addEventListener('eventide:events:refresh', () => {
+            currentPage = 1;
             loadEvents().catch((err) => {
                 if (list) list.innerHTML = `<p class="loading">Error loading events: ${err.message}</p>`;
                 console.error(err);

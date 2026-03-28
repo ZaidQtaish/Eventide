@@ -612,6 +612,28 @@ body.modal-open {
     color: #b91c1c;
 }
 
+.pagination-bar {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.pagination-btn {
+    padding: 8px 14px;
+    font-size: 13px;
+}
+
+.pagination-info {
+    font-size: 13px;
+    color: var(--text-secondary);
+    min-width: 90px;
+    text-align: center;
+}
+
 /* Footer */
 .footer {
     background: var(--bg-secondary);
@@ -665,6 +687,11 @@ body.modal-open {
 
     .event-form-grid {
         grid-template-columns: 1fr;
+    }
+
+    .pagination-bar {
+        justify-content: center;
+        flex-wrap: wrap;
     }
 
     .dashboard-demo {
