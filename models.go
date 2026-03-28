@@ -60,3 +60,20 @@ type session struct {
 	Username  string
 	ExpiresAt time.Time
 }
+
+type httpError struct {
+	status int
+	msg    string
+}
+
+type eventPlan struct {
+	mutations []eventMutation
+}
+
+type eventMutation struct {
+	itemID      int
+	warehouseID int
+	delta       int
+	eventType   string
+	reason      string
+}
