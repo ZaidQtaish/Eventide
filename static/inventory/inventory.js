@@ -4,6 +4,7 @@
     const queryInput = document.getElementById('item-sku-filter');
     const clearFilter = document.getElementById('clear-filter');
     const searchForm = document.getElementById('search-form');
+    let cachedRows = [];
 
     function normalizeRow(row) {
         return {
@@ -72,22 +73,32 @@
         try {
             const res = await fetch('/inventory');
             if (!res.ok) throw new Error('Fetch failed');
-            const data = await res.json();
-            render(data);
-
-            warehouseFilter?.addEventListener('change', () => render(data));
-            queryInput?.addEventListener('input', () => render(data));
-            searchForm?.addEventListener('submit', (e) => { e.preventDefault(); render(data); });
-            clearFilter?.addEventListener('click', () => {
-                if (warehouseFilter) warehouseFilter.value = '';
-                if (queryInput) queryInput.value = '';
-                render(data);
-            });
+            cachedRows = await res.json();
+            render(cachedRows);
         } catch (err) {
             if (list) list.innerHTML = `<p class="loading">Error loading stock: ${err.message}</p>`;
             console.error(err);
         }
     }
 
+    function bindEvents() {
+        warehouseFilter?.addEventListener('change', () => render(cachedRows));
+        queryInput?.addEventListener('input', () => render(cachedRows));
+        searchForm?.addEventListener('submit', (e) => { e.preventDefault(); render(cachedRows); });
+        clearFilter?.addEventListener('click', () => {
+            if (warehouseFilter) warehouseFilter.value = '';
+            if (queryInput) queryInput.value = '';
+            render(cachedRows);
+        });
+
+        window.addEventListener('eventide:inventory:refresh', () => {
+            load().catch((err) => {
+                if (list) list.innerHTML = `<p class="loading">Error loading stock: ${err.message}</p>`;
+                console.error(err);
+            });
+        });
+    }
+
+    bindEvents();
     load();
 })();

@@ -29,6 +29,9 @@
                         <h2>Current Stock</h2>
                         <p class="section-subtitle">Live inventory across warehouses</p>
                     </div>
+                    <div class="dashboard-header-actions">
+                        <button id="open-create-event-modal" class="cta-btn primary" type="button">Record Event</button>
+                    </div>
                 </div>
 
                 <!-- Filtering -->
@@ -74,7 +77,18 @@
         </div>
     </footer>
 
+    <script src="../events/create-event-modal.js"></script>
     <script src="inventory.js"></script>
+    <script>
+        (() => {
+            if (!window.EventideCreateEventModal || typeof window.EventideCreateEventModal.mount !== 'function') {
+                return;
+            }
+            window.EventideCreateEventModal.mount({
+                openButtonSelector: '#open-create-event-modal',
+            });
+        })();
+    </script>
 </body>
 
 </html>
