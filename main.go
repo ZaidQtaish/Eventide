@@ -15,14 +15,14 @@ func main() {
 	}
 	defer CloseDB()
 
-	http.HandleFunc("/items", RequireAuth(GetItemsHandler))
-	http.HandleFunc("/inventory", RequireAuth(GetInventoryHandler))
-	http.HandleFunc("/events", RequireAuth(EventsHandler))
-	http.HandleFunc("/daily-statements", RequireAuth(GetDailyStatementsHandler))
-	http.HandleFunc("/login", LoginHandler)
+	http.HandleFunc("/api/items", RequireAuth(GetItemsHandler))
+	http.HandleFunc("/api/inventory", RequireAuth(GetInventoryHandler))
+	http.HandleFunc("/api/events", RequireAuth(EventsHandler))
+	http.HandleFunc("/api/daily-statements", RequireAuth(GetDailyStatementsHandler))
+	http.HandleFunc("/api/login", LoginHandler)
 	http.HandleFunc("/logout", LogoutHandler)
-	http.HandleFunc("/users", RequireAuth(GetUsersHandler))
-	http.HandleFunc("/warehouses", RequireAuth(GetWarehousesHandler))
+	http.HandleFunc("/api/users", RequireAuth(GetUsersHandler))
+	http.HandleFunc("/api/warehouses", RequireAuth(GetWarehousesHandler))
 
 	// Serve UI
 	fs := http.FileServer(http.Dir("./static"))

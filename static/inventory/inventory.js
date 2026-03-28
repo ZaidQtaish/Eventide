@@ -14,7 +14,7 @@
     async function populateWarehouseFilter() {
         if (!warehouseFilter) return;
         try {
-            const res = await fetch('/warehouses');
+            const res = await fetch('/api/warehouses');
             if (!res.ok) return;
 
             const warehouses = await res.json();
@@ -124,7 +124,7 @@
     async function load() {
         if (list) list.innerHTML = '<p class="loading">Loading stock...</p>';
         try {
-            const res = await fetch('/inventory');
+            const res = await fetch('/api/inventory');
             if (!res.ok) throw new Error('Fetch failed');
             cachedRows = await res.json();
             render(cachedRows);

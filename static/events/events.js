@@ -16,8 +16,8 @@
     async function populateFilterOptions() {
         try {
             const [usersRes, warehousesRes] = await Promise.all([
-                fetch('/users'),
-                fetch('/warehouses'),
+                fetch('/api/users'),
+                fetch('/api/warehouses'),
             ]);
 
             if (usersRes.ok && userFilter) {
@@ -160,7 +160,7 @@
 
     async function loadEvents() {
         if (list) list.innerHTML = '<p class="loading">Loading events...</p>';
-        const res = await fetch('/events');
+        const res = await fetch('/api/events');
         if (!res.ok) throw new Error('Fetch failed');
         cachedEvents = await res.json();
 

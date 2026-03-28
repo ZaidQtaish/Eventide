@@ -121,7 +121,7 @@
         async function populateItemOptions() {
             if (!formItem) return;
             try {
-                const res = await fetch('/items');
+                const res = await fetch('/api/items');
                 if (!res.ok) throw new Error('Could not load items');
                 const items = await res.json();
 
@@ -165,7 +165,7 @@
             setFormMessage('Recording event...');
 
             try {
-                const res = await fetch('/events', {
+                const res = await fetch('/api/events', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload),
