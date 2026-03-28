@@ -1,6 +1,8 @@
 package main
 
-import "time"
+import (
+	"time"
+)
 
 type Item struct {
 	ID   int    `json:"item_id"`
@@ -77,8 +79,12 @@ type eventPlan struct {
 	mutations []eventMutation
 }
 
-type user struct {
-	ID       int    `json:"id"`
-	username string `json:"username"`
-	email    string `json:"email"`
+type User struct {
+	ID    int    `json:"id"`
+	Name  string `json:"username"`
+	Email string `json:"email"`
+}
+type Warehouse struct {
+	Code   string `json:"code"`
+	Status string `json:"status"`
 }
