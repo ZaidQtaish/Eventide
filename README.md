@@ -7,7 +7,7 @@ Eventide is an event-sourced inventory management system with AI-powered stock f
 In scope:
 - Capture every inventory movement as immutable events (event sourcing)
 - Build current stock state from event streams/snapshots
-- Track inbound, outbound, transfers, and adjustments with full auditability
+- Track inbound, outbound, and adjustments with full auditability
 - Expose inventory, events, and daily movement summaries via API
 - Provide AI forecasting for near-term stock demand and replenishment planning
 - Present operational insights in a web dashboard
