@@ -310,3 +310,31 @@ func GetUsersHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(users)
 }
+
+func GetWarehousesHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	ctx := context.Background()
+
+	rows, err := db.Query(ctx, "SELECT code, status FROM warehouses")
+	if err != nil {
+		http.Error(w, "Query failed", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var warehouses []Warehouse
+	for rows.Next() {
+		var wHouse Warehouse
+		if err := rows.Scan(&wHouse.Code, &wHouse.Status); err != nil {
+			continue
+		}
+		warehouses = append(warehouses, wHouse)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(warehouses)
+}
