@@ -38,6 +38,10 @@ body {
     flex-direction: column;
 }
 
+a {
+    text-decoration: none;
+}
+
 .page-content {
     flex: 1;
     display: flex;
@@ -88,7 +92,6 @@ body {
 }
 
 .nav-links a {
-    text-decoration: none;
     color: var(--text-secondary);
     font-weight: 500;
     transition: color 0.3s ease;
