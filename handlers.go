@@ -110,6 +110,7 @@ func GetEventsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateEventHandler(w http.ResponseWriter, r *http.Request) {
+	// Error handling and validation are done in validateAndPlanEvent; stock checks and DB mutations in applyEventMutation.
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
