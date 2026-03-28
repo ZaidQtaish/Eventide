@@ -289,9 +289,14 @@ func GetDailyStatementsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetUsersHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 	ctx := context.Background()
 
-	rows, err := db.Query(ctx, "SELECT id, name, email FROM users")
+	rows, err := db.Query(ctx, "SELECT id, username, name FROM users ORDER BY username")
 	if err != nil {
 		http.Error(w, "Query failed", http.StatusInternalServerError)
 		return
@@ -301,7 +306,7 @@ func GetUsersHandler(w http.ResponseWriter, r *http.Request) {
 	var users []User
 	for rows.Next() {
 		var u User
-		if err := rows.Scan(&u.ID, &u.Name, &u.Email); err != nil {
+		if err := rows.Scan(&u.ID, &u.Username, &u.Name); err != nil {
 			continue
 		}
 		users = append(users, u)
@@ -319,7 +324,7 @@ func GetWarehousesHandler(w http.ResponseWriter, r *http.Request) {
 
 	ctx := context.Background()
 
-	rows, err := db.Query(ctx, "SELECT code, status FROM warehouses")
+	rows, err := db.Query(ctx, "SELECT code, status FROM warehouses ORDER BY code")
 	if err != nil {
 		http.Error(w, "Query failed", http.StatusInternalServerError)
 		return

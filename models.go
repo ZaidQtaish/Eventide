@@ -80,9 +80,9 @@ type eventPlan struct {
 }
 
 type User struct {
-	ID    int    `json:"id"`
-	Name  string `json:"username"`
-	Email string `json:"email"`
+	ID       int    `json:"id"`
+	Username string `json:"username"`
+	Name     string `json:"name"`
 }
 type Warehouse struct {
 	Code   string `json:"code"`

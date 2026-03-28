@@ -13,6 +13,43 @@
     let currentPage = 1;
     const PAGE_SIZE = 8;
 
+    async function populateFilterOptions() {
+        try {
+            const [usersRes, warehousesRes] = await Promise.all([
+                fetch('/users'),
+                fetch('/warehouses'),
+            ]);
+
+            if (usersRes.ok && userFilter) {
+                const users = await usersRes.json();
+                userFilter.innerHTML = '<option value="">All users</option>';
+                users.forEach((u) => {
+                    const username = String(u.username || '').trim();
+                    if (!username) return;
+                    const option = document.createElement('option');
+                    option.value = username.toLowerCase();
+                    option.textContent = u.name ? `${u.name} (${username})` : username;
+                    userFilter.appendChild(option);
+                });
+            }
+
+            if (warehousesRes.ok && warehouseFilter) {
+                const warehouses = await warehousesRes.json();
+                warehouseFilter.innerHTML = '<option value="">Warehouses</option>';
+                warehouses.forEach((w) => {
+                    const code = String(w.code || '').trim();
+                    if (!code) return;
+                    const option = document.createElement('option');
+                    option.value = code.toLowerCase();
+                    option.textContent = code;
+                    warehouseFilter.appendChild(option);
+                });
+            }
+        } catch (err) {
+            console.error('Failed to load dynamic filter options', err);
+        }
+    }
+
     function formatDate(dateString) {
         const d = new Date(dateString);
         return d.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
@@ -175,6 +212,7 @@
     async function init() {
         bindEvents();
         try {
+            await populateFilterOptions();
             await loadEvents();
         } catch (err) {
             if (list) list.innerHTML = `<p class="loading">Error loading events: ${err.message}</p>`;

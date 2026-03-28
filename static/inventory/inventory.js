@@ -11,6 +11,27 @@
     let currentPage = 1;
     const PAGE_SIZE = 10;
 
+    async function populateWarehouseFilter() {
+        if (!warehouseFilter) return;
+        try {
+            const res = await fetch('/warehouses');
+            if (!res.ok) return;
+
+            const warehouses = await res.json();
+            warehouseFilter.innerHTML = '<option value="">All Warehouses</option>';
+            warehouses.forEach((w) => {
+                const code = String(w.code || '').trim();
+                if (!code) return;
+                const option = document.createElement('option');
+                option.value = code.toLowerCase();
+                option.textContent = code;
+                warehouseFilter.appendChild(option);
+            });
+        } catch (err) {
+            console.error('Failed to load warehouses filter options', err);
+        }
+    }
+
     function normalizeRow(row) {
         return {
             name: row.name ?? row.Name,
@@ -150,5 +171,5 @@
     }
 
     bindEvents();
-    load();
+    populateWarehouseFilter().finally(load);
 })();
