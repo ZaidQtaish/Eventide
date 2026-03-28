@@ -18,7 +18,6 @@
         if (normalized.includes('inbound')) return 'event-in';
         if (normalized.includes('outbound')) return 'event-out';
         if (normalized.includes('adjustment')) return 'event-in';
-        if (normalized.includes('transfer')) return 'event-in';
         return 'event-in';
     }
 
