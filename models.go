@@ -76,3 +76,9 @@ type eventMutation struct {
 type eventPlan struct {
 	mutations []eventMutation
 }
+
+type user struct {
+	ID       int    `json:"id"`
+	username string `json:"username"`
+	email    string `json:"email"`
+}
