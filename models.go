@@ -66,14 +66,14 @@ type httpError struct {
 	msg    string
 }
 
-type eventPlan struct {
-	mutations []eventMutation
-}
-
 type eventMutation struct {
 	itemID      int
 	warehouseID int
 	delta       int
 	eventType   string
 	reason      string
+}
+
+type eventPlan struct {
+	mutations []eventMutation
 }

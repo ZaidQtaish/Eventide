@@ -145,3 +145,32 @@ INSERT INTO events (type, item_id, quantity_change, reason_code, user_id, wareho
 ('transfer', 2, 15, 'WAREHOUSE_TRANSFER', 1, 2, CURRENT_TIMESTAMP - INTERVAL '6 hours'),
 ('inbound', 8, 300, 'PURCHASE', 4, 1, CURRENT_TIMESTAMP - INTERVAL '5 hours'),
 ('outbound', 5, 8, 'SALE', 5, 1, CURRENT_TIMESTAMP - INTERVAL '3 hours');
+
+-- Keep snapshot in sync whenever a new event is inserted
+CREATE OR REPLACE FUNCTION apply_event_to_snapshot()
+RETURNS TRIGGER AS $$
+DECLARE
+    resulting_qty INT;
+BEGIN
+    INSERT INTO snapshot (item_id, warehouse_id, current_quantity, last_updated)
+    VALUES (NEW.item_id, NEW.warehouse_id, NEW.quantity_change, NEW.timestamp)
+    ON CONFLICT (item_id, warehouse_id)
+    DO UPDATE
+    SET current_quantity = snapshot.current_quantity + EXCLUDED.current_quantity,
+        last_updated = NOW()
+    RETURNING current_quantity INTO resulting_qty;
+
+    IF resulting_qty < 0 THEN
+        RAISE EXCEPTION 'Insufficient stock for item_id % in warehouse_id %', NEW.item_id, NEW.warehouse_id
+            USING ERRCODE = '23514';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_events_apply_to_snapshot ON events;
+CREATE TRIGGER trg_events_apply_to_snapshot
+AFTER INSERT ON events
+FOR EACH ROW
+EXECUTE FUNCTION apply_event_to_snapshot();
