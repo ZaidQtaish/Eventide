@@ -31,7 +31,7 @@
                         <p class="section-subtitle">Catalog of all inventory items</p>
                     </div>
                     <div class="dashboard-header-actions">
-                        <button id="add-new-item-btn" class="cta-btn primary" type="button">Create New Item</button>
+                        <button id="add-new-item-btn" class="cta-btn primary" type="button">Add New Item</button>
                     </div>
                 </div>
 
@@ -64,6 +64,62 @@
             </div>
         </section>
     </main>
+
+    <div id="create-item-modal" class="event-modal is-hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="create-item-title">
+        <div class="event-modal-backdrop" data-close-item-modal="true"></div>
+        <div class="event-modal-card panel">
+            <div class="panel-header">
+                <h3 id="create-item-title">Add New Item</h3>
+                <button id="close-create-item-modal" class="cta-btn ghost event-modal-close" type="button">Close</button>
+            </div>
+
+            <form id="create-item-form" class="event-form-grid" novalidate>
+                <div class="form-group">
+                    <label for="item-name">Name</label>
+                    <input id="item-name" class="form-control" type="text" required maxlength="100" />
+                </div>
+
+                <div class="form-group">
+                    <label for="item-sku">SKU</label>
+                    <input id="item-sku" class="form-control" type="text" required maxlength="50" />
+                </div>
+
+                <div class="form-group">
+                    <label for="item-category">Category</label>
+                    <select id="item-category" class="form-control">
+                        <option value="">Select category</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Accessories">Accessories</option>
+                        <option value="Cables">Cables</option>
+                        <option value="Office">Office</option>
+                        <option value="Supplies">Supplies</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="item-minimum-stock">Minimum Stock</label>
+                    <input id="item-minimum-stock" class="form-control" type="number" min="0" step="1" value="10" required />
+                </div>
+
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label for="item-description">Description</label>
+                    <textarea id="item-description" class="form-control" rows="3" maxlength="1000"></textarea>
+                </div>
+
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label for="item-supplier-id">Supplier ID (optional)</label>
+                    <input id="item-supplier-id" class="form-control" type="number" min="1" step="1" />
+                </div>
+
+                <p id="create-item-message" class="form-message" aria-live="polite"></p>
+
+                <div class="event-form-actions">
+                    <button id="create-item-submit" class="cta-btn primary" type="submit">Create Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <footer class="footer">
         <div class="container">

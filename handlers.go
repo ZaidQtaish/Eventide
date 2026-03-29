@@ -10,6 +10,18 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+// ItemsHandler routes GET/POST for /items
+func ItemsHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		GetItemsHandler(w, r)
+	case http.MethodPost:
+		CreateItemHandler(w, r)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
 // EventsHandler routes GET/POST for /events
 func EventsHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
@@ -26,7 +38,7 @@ func EventsHandler(w http.ResponseWriter, r *http.Request) {
 func GetItemsHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 
-	rows, err := db.Query(ctx, "SELECT id, sku, name FROM items")
+	rows, err := db.Query(ctx, "SELECT id, sku, name, description, minimum_stock, category, supplier_id FROM items ORDER BY id")
 	if err != nil {
 		http.Error(w, "Query failed", http.StatusInternalServerError)
 		return
@@ -36,7 +48,7 @@ func GetItemsHandler(w http.ResponseWriter, r *http.Request) {
 	var items []Item
 	for rows.Next() {
 		var i Item
-		if err := rows.Scan(&i.ID, &i.SKU, &i.Name); err != nil {
+		if err := rows.Scan(&i.ID, &i.SKU, &i.Name, &i.Description, &i.MinimumStock, &i.Category, &i.SupplierID); err != nil {
 			continue
 		}
 		items = append(items, i)
@@ -44,6 +56,78 @@ func GetItemsHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(items)
+}
+
+func CreateItemHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req CreateItemRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	name := strings.TrimSpace(req.Name)
+	sku := strings.TrimSpace(req.SKU)
+	description := strings.TrimSpace(req.Description)
+	category := strings.TrimSpace(req.Category)
+
+	if name == "" {
+		http.Error(w, "name is required", http.StatusBadRequest)
+		return
+	}
+
+	if sku == "" {
+		http.Error(w, "sku is required", http.StatusBadRequest)
+		return
+	}
+
+	minimumStock := 10
+	if req.MinimumStock != nil {
+		minimumStock = *req.MinimumStock
+	}
+
+	if minimumStock < 0 {
+		http.Error(w, "minimum_stock cannot be negative", http.StatusBadRequest)
+		return
+	}
+
+	var supplierID any
+	if req.SupplierID != nil {
+		if *req.SupplierID <= 0 {
+			http.Error(w, "supplier_id must be positive", http.StatusBadRequest)
+			return
+		}
+		supplierID = *req.SupplierID
+	}
+
+	ctx := r.Context()
+	var created Item
+	err := db.QueryRow(
+		ctx,
+		"INSERT INTO items (name, sku, description, minimum_stock, category, supplier_id) VALUES ($1, $2, NULLIF($3, ''), $4, NULLIF($5, ''), $6) RETURNING id, sku, name, description, minimum_stock, category, supplier_id",
+		name,
+		sku,
+		description,
+		minimumStock,
+		category,
+		supplierID,
+	).Scan(&created.ID, &created.SKU, &created.Name, &created.Description, &created.MinimumStock, &created.Category, &created.SupplierID)
+	if err != nil {
+		if strings.Contains(strings.ToLower(err.Error()), "duplicate key") {
+			http.Error(w, "sku already exists", http.StatusConflict)
+			return
+		}
+		http.Error(w, "Insert failed", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(created)
 }
 
 func GetInventoryHandler(w http.ResponseWriter, r *http.Request) {

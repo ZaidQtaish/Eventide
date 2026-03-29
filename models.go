@@ -5,9 +5,13 @@ import (
 )
 
 type Item struct {
-	ID   int    `json:"item_id"`
-	SKU  string `json:"sku"`
-	Name string `json:"name"`
+	ID           int     `json:"item_id"`
+	SKU          string  `json:"sku"`
+	Name         string  `json:"name"`
+	Description  *string `json:"description,omitempty"`
+	MinimumStock int     `json:"minimum_stock"`
+	Category     *string `json:"category,omitempty"`
+	SupplierID   *int    `json:"supplier_id,omitempty"`
 }
 
 type Inventory struct {
@@ -55,6 +59,15 @@ type CreateEventRequest struct {
 	QuantityChange int    `json:"quantity_change"`
 	EventType      string `json:"type"`
 	ReasonCode     string `json:"reason_code"`
+}
+
+type CreateItemRequest struct {
+	Name         string `json:"name"`
+	SKU          string `json:"sku"`
+	Description  string `json:"description"`
+	Category     string `json:"category"`
+	MinimumStock *int   `json:"minimum_stock"`
+	SupplierID   *int   `json:"supplier_id"`
 }
 
 type session struct {
