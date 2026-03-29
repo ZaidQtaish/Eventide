@@ -634,6 +634,14 @@ body.modal-open {
     text-align: center;
 }
 
+.item-pill-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
 /* Footer */
 .footer {
     background: var(--bg-secondary);

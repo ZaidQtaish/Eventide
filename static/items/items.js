@@ -14,6 +14,7 @@
 
     const list = document.getElementById('items-list');
     const queryInput = document.getElementById('item-search-filter');
+    const categoryFilterInput = document.getElementById('item-category-filter');
     const clearFilter = document.getElementById('clear-filter');
     const prevPageBtn = document.getElementById('items-prev-page');
     const nextPageBtn = document.getElementById('items-next-page');
@@ -25,10 +26,38 @@
 
     function matchesFilter(item) {
         const query = (queryInput?.value || '').toLowerCase();
+        const selectedCategory = (categoryFilterInput?.value || '').toLowerCase();
+        const itemCategory = String(item.category || '').toLowerCase();
+
+        if (selectedCategory && itemCategory !== selectedCategory) {
+            return false;
+        }
+
         if (!query) return true;
 
         const fields = [item.name, item.sku, item.item_id];
         return fields.some((value) => String(value || '').toLowerCase().includes(query));
+    }
+
+    function populateCategoryFilter(items) {
+        if (!categoryFilterInput) return;
+
+        const current = categoryFilterInput.value;
+        const categories = [...new Set((items || [])
+            .map((item) => String(item.category || '').trim())
+            .filter(Boolean))].sort((a, b) => a.localeCompare(b));
+
+        categoryFilterInput.innerHTML = '<option value="">All categories</option>';
+        categories.forEach((category) => {
+            const option = document.createElement('option');
+            option.value = category;
+            option.textContent = category;
+            categoryFilterInput.appendChild(option);
+        });
+
+        if (current && categories.includes(current)) {
+            categoryFilterInput.value = current;
+        }
     }
 
     function updatePaginationUI(totalPages) {
@@ -75,7 +104,9 @@
                     <div class="event-title">${item.name || 'Unnamed item'} (${item.sku || 'SKU N/A'})</div>
                     <div class="event-meta">Item ID: ${item.item_id ?? '-'} | Category: ${category} | Min Stock: ${minimumStock}</div>
                 </div>
-                <div class="pill">ITEM</div>
+                <div class="item-pill-group">
+                    <span class="pill">${category}</span>
+                </div>
             `;
             list.appendChild(row);
         });
@@ -89,6 +120,7 @@
         if (!res.ok) throw new Error('Fetch failed');
 
         cachedItems = await res.json();
+        populateCategoryFilter(cachedItems);
         render(cachedItems);
     }
 
@@ -101,9 +133,11 @@
         addNewItemBtn?.addEventListener('click', openCreateItemModal);
 
         queryInput?.addEventListener('input', rerenderFromFirstPage);
+        categoryFilterInput?.addEventListener('change', rerenderFromFirstPage);
 
         clearFilter?.addEventListener('click', () => {
             if (queryInput) queryInput.value = '';
+            if (categoryFilterInput) categoryFilterInput.value = '';
             rerenderFromFirstPage();
         });
 
