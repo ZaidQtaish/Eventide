@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Eventide | Events</title>
+    <title>Eventide | Items</title>
     <link rel="stylesheet" href="../style.css" />
 </head>
 
@@ -27,11 +27,11 @@
             <div class="container">
                 <div class="dashboard-header">
                     <div>
-                        <h2>Event Log</h2>
-                        <p class="section-subtitle">Immutable inventory activity history</p>
+                        <h2>Manage Items</h2>
+                        <p class="section-subtitle">Catalog of all inventory items</p>
                     </div>
                     <div class="dashboard-header-actions">
-                        <button id="open-create-event-modal" class="cta-btn primary" type="button">Record Event</button>
+                        <button id="add-new-item-btn" class="cta-btn primary" type="button">Create New Item</button>
                     </div>
                 </div>
 
@@ -40,23 +40,7 @@
                         <h3>Filtering</h3>
                     </div>
                     <div class="filter-row filters-with-clear">
-                        <select id="event-type-filter" class="form-control">
-                            <option value="">All types</option>
-                            <option value="inbound">Inbound</option>
-                            <option value="outbound">Outbound</option>
-                            <option value="adjustment">Adjustment</option>
-                        </select>
-
-                        <select id="user-filter" class="form-control">
-                            <option value="">All users</option>
-                        </select>
-
-                        <select id="warehouse-filter" class="form-control">
-                            <option value="">Warehouses</option>
-                        </select>
-
-                        <input id="item-sku-filter" placeholder="Item name or SKU" class="form-control" />
-
+                        <input id="item-search-filter" class="form-control" type="search" placeholder="Search by item name, SKU" />
                         <div class="filters-clear">
                             <button id="clear-filter" class="cta-btn ghost">Clear</button>
                         </div>
@@ -65,16 +49,16 @@
 
                 <div class="panel" style="margin-bottom: 20px;">
                     <div class="panel-header">
-                        <h3>Latest Events</h3>
-                        <span class="pill">Real-time</span>
+                        <h3>Items</h3>
+                        <span class="pill">Catalog</span>
                     </div>
-                    <div id="events-list" class="events-container">
-                        <p class="loading">Loading events...</p>
+                    <div id="items-list" class="events-container">
+                        <p class="loading">Loading items...</p>
                     </div>
                     <div class="pagination-bar">
-                        <button id="events-prev-page" class="cta-btn ghost pagination-btn" type="button">Prev</button>
-                        <span id="events-page-info" class="pagination-info">Page 1 of 1</span>
-                        <button id="events-next-page" class="cta-btn ghost pagination-btn" type="button">Next</button>
+                        <button id="items-prev-page" class="cta-btn ghost pagination-btn" type="button">Prev</button>
+                        <span id="items-page-info" class="pagination-info">Page 1 of 1</span>
+                        <button id="items-next-page" class="cta-btn ghost pagination-btn" type="button">Next</button>
                     </div>
                 </div>
             </div>
@@ -86,9 +70,7 @@
             <p>&copy; 2026 Eventide. All rights reserved.</p>
         </div>
     </footer>
-    <script src="create-event-modal.js"></script>
-    <script src="events.js"></script>
-    <script src="create-event.js"></script>
+    <script src="items.js"></script>
 </body>
 
 </html>
