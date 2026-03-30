@@ -23,6 +23,7 @@ func main() {
 	http.HandleFunc("/logout", LogoutHandler)
 	http.HandleFunc("/api/users", RequireAuth(GetUsersHandler))
 	http.HandleFunc("/api/warehouses", RequireAuth(GetWarehousesHandler))
+	http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("./public"))))
 
 	// Serve UI
 	fs := http.FileServer(http.Dir("./static"))

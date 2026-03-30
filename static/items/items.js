@@ -24,6 +24,30 @@
     let currentPage = 1;
     const PAGE_SIZE = 12;
 
+    function buildSkuThumb(sku) {
+        const safeSku = String(sku || '').trim();
+        const encodedSku = encodeURIComponent(safeSku);
+        return `
+            <div class="sku-thumb">
+                <img class="sku-thumb-img" src="/public/${encodedSku}.png" alt="${safeSku || 'Item'} image" loading="lazy" />
+                <span class="sku-thumb-fallback">IMG</span>
+            </div>
+        `;
+    }
+
+    function applySkuThumbFallback(scope) {
+        const images = scope.querySelectorAll('.sku-thumb-img');
+        images.forEach((img) => {
+            img.addEventListener('load', () => {
+                img.closest('.sku-thumb')?.classList.add('has-image');
+            });
+            img.addEventListener('error', () => {
+                img.style.display = 'none';
+                img.closest('.sku-thumb')?.classList.remove('has-image');
+            });
+        });
+    }
+
     function matchesFilter(item) {
         const query = (queryInput?.value || '').toLowerCase();
         const selectedCategory = (categoryFilterInput?.value || '').toLowerCase();
@@ -97,18 +121,23 @@
         paginated.forEach((item) => {
             const category = item.category || 'Uncategorized';
             const minimumStock = Number.isFinite(item.minimum_stock) ? item.minimum_stock : '-';
+            const sku = item.sku || 'SKU N/A';
             const row = document.createElement('div');
             row.className = 'event-row event-in';
             row.innerHTML = `
-                <div class="event-details">
-                    <div class="event-title">${item.name || 'Unnamed item'} (${item.sku || 'SKU N/A'})</div>
-                    <div class="event-meta">Item ID: ${item.item_id ?? '-'} | Category: ${category} | Min Stock: ${minimumStock}</div>
+                <div class="event-main">
+                    ${buildSkuThumb(sku)}
+                    <div class="event-details">
+                        <div class="event-title">${item.name || 'Unnamed item'} (${sku})</div>
+                        <div class="event-meta">Item ID: ${item.item_id ?? '-'} | Category: ${category} | Min Stock: ${minimumStock}</div>
+                    </div>
                 </div>
                 <div class="item-pill-group">
                     <span class="pill">${category}</span>
                 </div>
             `;
             list.appendChild(row);
+            applySkuThumbFallback(row);
         });
 
         updatePaginationUI(totalPages);

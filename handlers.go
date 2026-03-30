@@ -165,7 +165,7 @@ func GetEventsHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 
 	query := `
-		SELECT e.id, e.item_id, e.user_id, i.name, u.username, e.warehouse_id, w.code, e.type, e.reason_code, e.quantity_change, e.timestamp
+		SELECT e.id, e.item_id, e.user_id, i.name, i.sku, u.username, e.warehouse_id, w.code, e.type, e.reason_code, e.quantity_change, e.timestamp
 		FROM events e
 		JOIN items i ON e.item_id = i.id
 		JOIN users u ON e.user_id = u.id
@@ -183,7 +183,7 @@ func GetEventsHandler(w http.ResponseWriter, r *http.Request) {
 	var events []Event
 	for rows.Next() {
 		var evt Event
-		if err := rows.Scan(&evt.EventID, &evt.ItemID, &evt.UserID, &evt.ItemName, &evt.Username, &evt.WarehouseID, &evt.WarehouseCode, &evt.EventType, &evt.ReasonCode, &evt.QuantityChange, &evt.Timestamp); err != nil {
+		if err := rows.Scan(&evt.EventID, &evt.ItemID, &evt.UserID, &evt.ItemName, &evt.SKU, &evt.Username, &evt.WarehouseID, &evt.WarehouseCode, &evt.EventType, &evt.ReasonCode, &evt.QuantityChange, &evt.Timestamp); err != nil {
 			continue
 		}
 		events = append(events, evt)

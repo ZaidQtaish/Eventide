@@ -30,6 +30,7 @@ type Event struct {
 	ItemID         int       `json:"item_id"`
 	UserID         int       `json:"user_id"`
 	ItemName       string    `json:"item_name"`
+	SKU            string    `json:"sku"`
 	Username       string    `json:"username"`
 	WarehouseID    int       `json:"warehouse_id"`
 	WarehouseCode  string    `json:"warehouse_code"`

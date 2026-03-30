@@ -11,6 +11,30 @@
     let currentPage = 1;
     const PAGE_SIZE = 10;
 
+    function buildSkuThumb(sku) {
+        const safeSku = String(sku || '').trim();
+        const encodedSku = encodeURIComponent(safeSku);
+        return `
+            <div class="sku-thumb">
+                <img class="sku-thumb-img" src="/public/${encodedSku}.png" alt="${safeSku || 'Item'} image" loading="lazy" />
+                <span class="sku-thumb-fallback">IMG</span>
+            </div>
+        `;
+    }
+
+    function applySkuThumbFallback(scope) {
+        const images = scope.querySelectorAll('.sku-thumb-img');
+        images.forEach((img) => {
+            img.addEventListener('load', () => {
+                img.closest('.sku-thumb')?.classList.add('has-image');
+            });
+            img.addEventListener('error', () => {
+                img.style.display = 'none';
+                img.closest('.sku-thumb')?.classList.remove('has-image');
+            });
+        });
+    }
+
     async function populateWarehouseFilter() {
         if (!warehouseFilter) return;
         try {
@@ -93,13 +117,17 @@
             const isLow = row.current_quantity <= (row.minimum_quantity || 0);
             el.className = `event-row ${isLow ? 'event-out' : 'event-in'}`;
             el.innerHTML = `
-                <div class="event-details">
-                    <div class="event-title">${row.name || 'Unknown item'} (${row.sku || 'SKU N/A'})</div>
-                    <div class="event-meta">${row.warehouse_code || row.warehouse_id || 'No warehouse'} · Min ${row.minimum_quantity ?? '-'} · Updated ${formatDate(row.last_updated)}</div>
+                <div class="event-main">
+                    ${buildSkuThumb(row.sku)}
+                    <div class="event-details">
+                        <div class="event-title">${row.name || 'Unknown item'} (${row.sku || 'SKU N/A'})</div>
+                        <div class="event-meta">${row.warehouse_code || row.warehouse_id || 'No warehouse'} · Min ${row.minimum_quantity ?? '-'} · Updated ${formatDate(row.last_updated)}</div>
+                    </div>
                 </div>
                 <div class="event-qty" title="Current quantity">${row.current_quantity}</div>
             `;
             list.appendChild(el);
+            applySkuThumbFallback(el);
         });
 
         updatePaginationUI(totalPages);
