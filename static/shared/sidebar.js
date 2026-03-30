@@ -12,8 +12,8 @@
                 <a href="/app/" class="sidebar-logo">Eventide</a>
                 <nav class="sidebar-nav">
                     <a class="sidebar-link ${active === 'dashboard' ? 'active' : ''}" href="/app/">Dashboard</a>
-                    <a class="sidebar-link ${active === 'items' ? 'active' : ''}" href="/app/items/">Items</a>
                     <a class="sidebar-link ${active === 'inventory' ? 'active' : ''}" href="/app/inventory/">Inventory</a>
+                    <a class="sidebar-link ${active === 'items' ? 'active' : ''}" href="/app/items/">Items</a>
                     <a class="sidebar-link ${active === 'events' ? 'active' : ''}" href="/app/events/">Events</a>
                 </nav>
                 <div class="sidebar-footer">
