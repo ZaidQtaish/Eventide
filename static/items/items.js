@@ -5,6 +5,7 @@
     const createItemForm = document.getElementById('create-item-form');
     const createItemMessage = document.getElementById('create-item-message');
     const createItemSubmitBtn = document.getElementById('create-item-submit');
+    const createItemTitle = document.getElementById('create-item-title');
     const itemNameInput = document.getElementById('item-name');
     const itemSkuInput = document.getElementById('item-sku');
     const itemCategoryInput = document.getElementById('item-category');
@@ -22,6 +23,7 @@
 
     let cachedItems = [];
     let currentPage = 1;
+    let editingItemID = null;
     const PAGE_SIZE = 12;
 
     function buildSkuThumb(sku) {
@@ -134,6 +136,7 @@
                 </div>
                 <div class="item-pill-group">
                     <span class="pill">${category}</span>
+                    <button class="cta-btn ghost item-edit-btn" type="button" data-item-id="${item.item_id}">Edit</button>
                 </div>
             `;
             list.appendChild(row);
@@ -196,6 +199,19 @@
         });
 
         createItemForm?.addEventListener('submit', handleCreateItemSubmit);
+
+        list?.addEventListener('click', (event) => {
+            const target = event.target;
+            if (!(target instanceof HTMLElement)) return;
+            const button = target.closest('.item-edit-btn');
+            if (!(button instanceof HTMLElement)) return;
+
+            const rawID = button.dataset.itemId;
+            const itemID = Number.parseInt(rawID || '', 10);
+            if (!Number.isFinite(itemID)) return;
+
+            openEditItemModal(itemID);
+        });
     }
 
     function setCreateItemMessage(text, kind) {
@@ -207,8 +223,40 @@
 
     function openCreateItemModal() {
         if (!createItemModal) return;
+        editingItemID = null;
+        if (createItemTitle) createItemTitle.textContent = 'Add New Item';
+        if (createItemSubmitBtn) createItemSubmitBtn.textContent = 'Create Item';
+
+        createItemForm?.reset();
+        if (itemMinimumStockInput) itemMinimumStockInput.value = '10';
+
         createItemModal.classList.remove('is-hidden');
         createItemModal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('modal-open');
+        setCreateItemMessage('', '');
+        itemNameInput?.focus();
+    }
+
+    function openEditItemModal(itemID) {
+        const existing = cachedItems.find((item) => Number(item.item_id) === Number(itemID));
+        if (!existing) {
+            setCreateItemMessage('Item not found for editing.', 'error');
+            return;
+        }
+
+        editingItemID = itemID;
+        if (createItemTitle) createItemTitle.textContent = 'Edit Item';
+        if (createItemSubmitBtn) createItemSubmitBtn.textContent = 'Save Changes';
+
+        if (itemNameInput) itemNameInput.value = existing.name || '';
+        if (itemSkuInput) itemSkuInput.value = existing.sku || '';
+        if (itemCategoryInput) itemCategoryInput.value = existing.category || '';
+        if (itemMinimumStockInput) itemMinimumStockInput.value = Number.isFinite(existing.minimum_stock) ? String(existing.minimum_stock) : '10';
+        if (itemDescriptionInput) itemDescriptionInput.value = existing.description || '';
+        if (itemSupplierIDInput) itemSupplierIDInput.value = Number.isFinite(existing.supplier_id) ? String(existing.supplier_id) : '';
+
+        createItemModal?.classList.remove('is-hidden');
+        createItemModal?.setAttribute('aria-hidden', 'false');
         document.body.classList.add('modal-open');
         setCreateItemMessage('', '');
         itemNameInput?.focus();
@@ -265,12 +313,18 @@
             payload.supplier_id = supplierID;
         }
 
+        const isEditMode = Number.isFinite(editingItemID) && editingItemID > 0;
+        const url = isEditMode ? `/api/items/${editingItemID}` : '/api/items';
+        const method = isEditMode ? 'PUT' : 'POST';
+        const pendingMessage = isEditMode ? 'Saving changes...' : 'Creating item...';
+        const successMessage = isEditMode ? 'Item updated successfully.' : 'Item created successfully.';
+
         if (createItemSubmitBtn) createItemSubmitBtn.disabled = true;
-        setCreateItemMessage('Creating item...', '');
+        setCreateItemMessage(pendingMessage, '');
 
         try {
-            const response = await fetch('/api/items', {
-                method: 'POST',
+            const response = await fetch(url, {
+                method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
             });
@@ -280,7 +334,7 @@
                 throw new Error(errorText || 'Request failed');
             }
 
-            setCreateItemMessage('Item created successfully.', 'success');
+            setCreateItemMessage(successMessage, 'success');
             createItemForm.reset();
             if (itemMinimumStockInput) itemMinimumStockInput.value = '10';
             await loadItems();

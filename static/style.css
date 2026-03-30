@@ -680,6 +680,11 @@ body.modal-open {
     justify-content: flex-end;
 }
 
+.item-edit-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+}
+
 /* Footer */
 .footer {
     background: var(--bg-secondary);
