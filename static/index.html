@@ -1,76 +1,66 @@
-                                                                                                                                                                                                                                                                                                                                                                                                                                                        <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Eventide - Intelligent Inventory Management</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/style.css" />
 </head>
+
 <body>
-    <div id="sidebar-root"></div>
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="/">
+                <div class="logo">Eventide</div>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="/login/">Sign In</a></li>
+            </ul>
+        </div>
+    </nav>
 
     <main class="page-content">
-        <section id="dashboard" class="dashboard-section">
+        <section class="hero">
             <div class="container">
-                <div class="dashboard-header">
-                    <div>
-                        <h2>Dashboard</h2>
-                        <p class="section-subtitle">Live pulse of your inventory</p>
-                    </div>
+                <div class="hero-content">
+                    <h1>Smart Inventory Management Made Simple</h1>
+                    <p class="subtitle">Efficient inventory tracking with event sourcing</p>
+                    <a class="cta-btn primary" href="/login/">Go to Login</a>
                 </div>
+            </div>
+        </section>
 
-                <div class="cards-grid">
-                    <div class="stat-card">
-                        <div class="stat-label">Total Items</div>
-                        <div class="stat-value" id="stat-total-items">--</div>
+        <section id="features" class="features">
+            <div class="container">
+                <h2>Powerful Features</h2>
+                <p class="section-subtitle">Everything you need to manage inventory effectively</p>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">📦</div>
+                        <h3>Event Sourcing</h3>
+                        <p>Track all inventory changes in real-time with complete event history</p>
                     </div>
-                    <div class="stat-card warning">
-                        <div class="stat-label">Below Minimum</div>
-                        <div class="stat-value" id="stat-below-min">--</div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🏭</div>
+                        <h3>Warehouse Visibility</h3>
+                        <p>Monitor inventory levels across warehouses from one dashboard</p>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Warehouses</div>
-                        <div class="stat-value" id="stat-warehouses">--</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Last Update</div>
-                        <div class="stat-value dashboard-date" id="stat-last-update">--</div>
-                    </div>
-                </div>
-
-                <div class="dashboard-split">
-                    <div class="panel">
-                        <div class="panel-header">
-                            <h3>Recent Stock Changes</h3>
-                            <span class="pill">Last 5</span>
-                        </div>
-                        <div id="recent-events" class="events-container">
-                            <p class="loading">Loading recent activity...</p>
-                        </div>
-                    </div>
-
-                    <div class="panel">
-                        <div class="panel-header">
-                            <h3>Low Stock</h3>
-                            <span class="pill warning">Below min</span>
-                        </div>
-                        <div id="low-stock" class="low-stock-list">
-                            <p class="loading">Loading low stock...</p>
-                        </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔒</div>
+                        <h3>Secure Access</h3>
+                        <p>Role-ready foundation with authenticated access to operations</p>
                     </div>
                 </div>
             </div>
         </section>
     </main>
 
-    <!-- Footer -->
     <footer class="footer">
         <div class="container">
             <p>&copy; 2026 Eventide. All rights reserved.</p>
         </div>
     </footer>
-
-    <script src="shared/sidebar.js"></script>
-    <script src="script.js"></script>
 </body>
+
 </html>

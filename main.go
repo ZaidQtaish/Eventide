@@ -29,8 +29,7 @@ func main() {
 	loginFS := http.StripPrefix("/login/", http.FileServer(http.Dir("./static/login")))
 	http.Handle("/login/", loginFS)
 
-	appFS := http.StripPrefix("/app", http.FileServer(http.Dir("./static")))
-	http.Handle("/app/", RequireAuthApp(appFS))
+	http.Handle("/app/", RequireAuthApp(http.HandlerFunc(AppHandler)))
 
 	http.HandleFunc("/", RootHandler)
 
@@ -44,12 +43,17 @@ func RootHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if GetSessionUser(r) != "" {
-		http.Redirect(w, r, "/app/", http.StatusSeeOther)
+	http.ServeFile(w, r, "./static/index.html")
+}
+
+func AppHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path == "/app/" {
+		http.ServeFile(w, r, "./static/dashboard.html")
 		return
 	}
 
-	http.Redirect(w, r, "/login/", http.StatusSeeOther)
+	appFS := http.StripPrefix("/app", http.FileServer(http.Dir("./static")))
+	appFS.ServeHTTP(w, r)
 }
 
 func RequireAuthApp(next http.Handler) http.Handler {
