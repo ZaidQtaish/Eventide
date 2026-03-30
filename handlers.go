@@ -12,6 +12,22 @@ import (
 
 // ItemsHandler routes GET/POST for /items
 func ItemsHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/api/items" {
+		id, err := parseItemIDFromPath(r.URL.Path)
+		if err != nil {
+			http.Error(w, "Invalid item id", http.StatusBadRequest)
+			return
+		}
+
+		switch r.Method {
+		case http.MethodPut:
+			UpdateItemHandler(w, r, id)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+		return
+	}
+
 	switch r.Method {
 	case http.MethodGet:
 		GetItemsHandler(w, r)
@@ -20,6 +36,20 @@ func ItemsHandler(w http.ResponseWriter, r *http.Request) {
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
+}
+
+func parseItemIDFromPath(path string) (int, error) {
+	const prefix = "/api/items/"
+	if !strings.HasPrefix(path, prefix) {
+		return 0, strconv.ErrSyntax
+	}
+
+	itemIDPart := strings.Trim(strings.TrimPrefix(path, prefix), "/")
+	if itemIDPart == "" || strings.Contains(itemIDPart, "/") {
+		return 0, strconv.ErrSyntax
+	}
+
+	return strconv.Atoi(itemIDPart)
 }
 
 // EventsHandler routes GET/POST for /events
@@ -128,6 +158,82 @@ func CreateItemHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(created)
+}
+
+func UpdateItemHandler(w http.ResponseWriter, r *http.Request, itemID int) {
+	if itemID <= 0 {
+		http.Error(w, "Invalid item id", http.StatusBadRequest)
+		return
+	}
+
+	var req CreateItemRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	name := strings.TrimSpace(req.Name)
+	sku := strings.TrimSpace(req.SKU)
+	description := strings.TrimSpace(req.Description)
+	category := strings.TrimSpace(req.Category)
+
+	if name == "" {
+		http.Error(w, "name is required", http.StatusBadRequest)
+		return
+	}
+
+	if sku == "" {
+		http.Error(w, "sku is required", http.StatusBadRequest)
+		return
+	}
+
+	minimumStock := 10
+	if req.MinimumStock != nil {
+		minimumStock = *req.MinimumStock
+	}
+
+	if minimumStock < 0 {
+		http.Error(w, "minimum_stock cannot be negative", http.StatusBadRequest)
+		return
+	}
+
+	var supplierID any
+	if req.SupplierID != nil {
+		if *req.SupplierID <= 0 {
+			http.Error(w, "supplier_id must be positive", http.StatusBadRequest)
+			return
+		}
+		supplierID = *req.SupplierID
+	}
+
+	ctx := r.Context()
+	var updated Item
+	err := db.QueryRow(
+		ctx,
+		"UPDATE items SET name = $1, sku = $2, description = NULLIF($3, ''), minimum_stock = $4, category = NULLIF($5, ''), supplier_id = $6 WHERE id = $7 RETURNING id, sku, name, description, minimum_stock, category, supplier_id",
+		name,
+		sku,
+		description,
+		minimumStock,
+		category,
+		supplierID,
+		itemID,
+	).Scan(&updated.ID, &updated.SKU, &updated.Name, &updated.Description, &updated.MinimumStock, &updated.Category, &updated.SupplierID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			http.Error(w, "item not found", http.StatusNotFound)
+			return
+		}
+		if strings.Contains(strings.ToLower(err.Error()), "duplicate key") {
+			http.Error(w, "sku already exists", http.StatusConflict)
+			return
+		}
+		http.Error(w, "Update failed", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(updated)
 }
 
 func GetInventoryHandler(w http.ResponseWriter, r *http.Request) {

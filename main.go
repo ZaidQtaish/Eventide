@@ -16,6 +16,7 @@ func main() {
 	defer CloseDB()
 
 	http.HandleFunc("/api/items", RequireAuth(ItemsHandler))
+	http.HandleFunc("/api/items/", RequireAuth(ItemsHandler))
 	http.HandleFunc("/api/inventory", RequireAuth(GetInventoryHandler))
 	http.HandleFunc("/api/events", RequireAuth(EventsHandler))
 	http.HandleFunc("/api/daily-statements", RequireAuth(GetDailyStatementsHandler))
