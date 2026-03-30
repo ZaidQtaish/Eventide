@@ -36,7 +36,7 @@
 
 			if (res.ok) {
 				setMessage('Login successful. Redirecting...', 'success');
-				setTimeout(() => { window.location.href = '/'; }, 600);
+				setTimeout(() => { window.location.href = '/app/'; }, 600);
 				return;
 			}
 

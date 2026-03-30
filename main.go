@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 )
 
 func main() {
@@ -25,39 +24,41 @@ func main() {
 	http.HandleFunc("/api/users", RequireAuth(GetUsersHandler))
 	http.HandleFunc("/api/warehouses", RequireAuth(GetWarehousesHandler))
 	http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("./public"))))
+	http.Handle("/style.css", http.FileServer(http.Dir("./static")))
 
-	// Serve UI
-	fs := http.FileServer(http.Dir("./static"))
-	http.HandleFunc("/", RequireAuthPage(fs))
+	loginFS := http.StripPrefix("/login/", http.FileServer(http.Dir("./static/login")))
+	http.Handle("/login/", loginFS)
+
+	appFS := http.StripPrefix("/app", http.FileServer(http.Dir("./static")))
+	http.Handle("/app/", RequireAuthApp(appFS))
+
+	http.HandleFunc("/", RootHandler)
 
 	fmt.Println("🚀 Eventide running at http://localhost:3000")
 	log.Fatal(http.ListenAndServe(":3000", nil))
 }
 
-// RequireAuthPage wraps a file server and redirects to login if not authenticated
-func RequireAuthPage(next http.Handler) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		path := r.URL.Path
+func RootHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		http.NotFound(w, r)
+		return
+	}
 
-		// Allow login pages and static assets without auth
-		if strings.HasPrefix(path, "/login/") ||
-			ends(path, ".css") || ends(path, ".js") ||
-			ends(path, ".png") || ends(path, ".jpg") || ends(path, ".svg") {
-			next.ServeHTTP(w, r)
-			return
-		}
+	if GetSessionUser(r) != "" {
+		http.Redirect(w, r, "/app/", http.StatusSeeOther)
+		return
+	}
 
-		// Require auth for everything else
+	http.Redirect(w, r, "/login/", http.StatusSeeOther)
+}
+
+func RequireAuthApp(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if GetSessionUser(r) == "" {
 			http.Redirect(w, r, "/login/", http.StatusSeeOther)
 			return
 		}
 
 		next.ServeHTTP(w, r)
-	}
-}
-
-// Helper function to check if string ends with suffix
-func ends(s, suffix string) bool {
-	return len(s) >= len(suffix) && s[len(s)-len(suffix):] == suffix
+	})
 }

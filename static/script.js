@@ -138,14 +138,6 @@ function renderEventRow(evt) {
     `;
 }
 
-// Smooth scroll to section
-function scrollToSection(sectionId) {
-    const element = document.getElementById(sectionId);
-    if (element) {
-        element.scrollIntoView();
-    }
-}
-
 // Load data when page loads
 document.addEventListener('DOMContentLoaded', () => {
     loadRecentEvents();

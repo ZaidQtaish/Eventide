@@ -1,20 +1,20 @@
 (() => {
     function getActiveSection(pathname) {
-        if (pathname.startsWith('/items/')) return 'items';
-        if (pathname.startsWith('/inventory/')) return 'inventory';
-        if (pathname.startsWith('/events/')) return 'events';
+        if (pathname.startsWith('/app/items/')) return 'items';
+        if (pathname.startsWith('/app/inventory/')) return 'inventory';
+        if (pathname.startsWith('/app/events/')) return 'events';
         return 'dashboard';
     }
 
     function buildSidebar(active) {
         return `
             <aside class="app-sidebar" aria-label="Primary">
-                <a href="/" class="sidebar-logo">Eventide</a>
+                <a href="/app/" class="sidebar-logo">Eventide</a>
                 <nav class="sidebar-nav">
-                    <a class="sidebar-link ${active === 'dashboard' ? 'active' : ''}" href="/">Dashboard</a>
-                    <a class="sidebar-link ${active === 'items' ? 'active' : ''}" href="/items/">Items</a>
-                    <a class="sidebar-link ${active === 'inventory' ? 'active' : ''}" href="/inventory/">Inventory</a>
-                    <a class="sidebar-link ${active === 'events' ? 'active' : ''}" href="/events/">Events</a>
+                    <a class="sidebar-link ${active === 'dashboard' ? 'active' : ''}" href="/app/">Dashboard</a>
+                    <a class="sidebar-link ${active === 'items' ? 'active' : ''}" href="/app/items/">Items</a>
+                    <a class="sidebar-link ${active === 'inventory' ? 'active' : ''}" href="/app/inventory/">Inventory</a>
+                    <a class="sidebar-link ${active === 'events' ? 'active' : ''}" href="/app/events/">Events</a>
                 </nav>
                 <div class="sidebar-footer">
                     <a class="sidebar-link sidebar-link-logout" href="/logout">Logout</a>
