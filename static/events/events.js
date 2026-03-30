@@ -13,30 +13,6 @@
     let currentPage = 1;
     const PAGE_SIZE = 8;
 
-    function buildSkuThumb(sku) {
-        const safeSku = String(sku || '').trim();
-        const encodedSku = encodeURIComponent(safeSku);
-        return `
-            <div class="sku-thumb">
-                <img class="sku-thumb-img" src="/public/${encodedSku}.png" alt="${safeSku || 'Item'} image" loading="lazy" />
-                <span class="sku-thumb-fallback">IMG</span>
-            </div>
-        `;
-    }
-
-    function applySkuThumbFallback(scope) {
-        const images = scope.querySelectorAll('.sku-thumb-img');
-        images.forEach((img) => {
-            img.addEventListener('load', () => {
-                img.closest('.sku-thumb')?.classList.add('has-image');
-            });
-            img.addEventListener('error', () => {
-                img.style.display = 'none';
-                img.closest('.sku-thumb')?.classList.remove('has-image');
-            });
-        });
-    }
-
     async function populateFilterOptions() {
         try {
             const [usersRes, warehousesRes] = await Promise.all([
@@ -146,13 +122,10 @@
             icon.textContent = (evt.type || 'N/A').toUpperCase().slice(0, 3);
 
             const details = document.createElement('div');
-            details.className = 'event-main';
+            details.className = 'event-details';
             details.innerHTML = `
-                ${buildSkuThumb(evt.sku)}
-                <div class="event-details">
-                    <div class="event-title">${evt.item_name || 'Unknown item'} (${evt.sku || 'SKU N/A'})</div>
-                    <div class="event-meta">${evt.warehouse_code || 'No warehouse'} · ${evt.username || 'Unknown user'} · ${evt.reason_code || 'No reason'} · ${formatDate(evt.timestamp)}</div>
-                </div>
+                <div class="event-title">${evt.item_name || 'Unknown item'} (${evt.sku || 'SKU N/A'})</div>
+                <div class="event-meta">${evt.warehouse_code || 'No warehouse'} · ${evt.username || 'Unknown user'} · ${evt.reason_code || 'No reason'} · ${formatDate(evt.timestamp)}</div>
             `;
 
             const qty = document.createElement('div');
@@ -164,7 +137,6 @@
             row.appendChild(qty);
 
             list.appendChild(row);
-            applySkuThumbFallback(row);
         });
 
         updatePaginationUI(totalPages);
