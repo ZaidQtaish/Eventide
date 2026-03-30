@@ -38,6 +38,10 @@ body {
     flex-direction: column;
 }
 
+body.has-sidebar {
+    padding-left: 240px;
+}
+
 a {
     text-decoration: none;
 }
@@ -69,6 +73,69 @@ a {
     z-index: 100;
     box-shadow: var(--shadow-sm);
     backdrop-filter: blur(10px);
+}
+
+.app-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 240px;
+    height: 100vh;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    z-index: 120;
+}
+
+.sidebar-logo {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.4px;
+    color: var(--text-dark);
+    display: block;
+    padding: 8px 10px;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sidebar-link {
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px 12px;
+    border-radius: 10px;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.sidebar-link:hover {
+    color: var(--text-dark);
+    background: var(--bg-tertiary);
+}
+
+.sidebar-link.active {
+    color: var(--primary-dark);
+    background: #e0ecff;
+}
+
+.sidebar-footer {
+    margin-top: auto;
+}
+
+.sidebar-link-logout {
+    color: #b91c1c;
+}
+
+.sidebar-link-logout:hover {
+    background: #fee2e2;
+    color: #991b1b;
 }
 
 .navbar .container {
@@ -683,6 +750,7 @@ body.modal-open {
 .item-edit-btn {
     padding: 6px 10px;
     font-size: 12px;
+    border-radius: 8px;
 }
 
 /* Footer */
@@ -697,6 +765,28 @@ body.modal-open {
 
 /* Responsive */
 @media (max-width: 768px) {
+    body.has-sidebar {
+        padding-left: 0;
+    }
+
+    .app-sidebar {
+        position: static;
+        width: auto;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        border-radius: 0;
+    }
+
+    .sidebar-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .sidebar-footer {
+        margin-top: 4px;
+    }
+
     .hero h1 {
         font-size: 36px;
     }

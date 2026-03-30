@@ -135,8 +135,8 @@
                     </div>
                 </div>
                 <div class="item-pill-group">
-                    <span class="pill">${category}</span>
-                    <button class="cta-btn ghost item-edit-btn" type="button" data-item-id="${item.item_id}">Edit</button>
+                <button class="cta-btn ghost item-edit-btn" type="button" data-item-id="${item.item_id}">Edit</button>
+                <span class="pill">${category}</span>
                 </div>
             `;
             list.appendChild(row);
