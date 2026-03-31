@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Eventide | Warehouses</title>
+    <link rel="stylesheet" href="../style.css" />
+</head>
+
+<body>
+    <div id="sidebar-root"></div>
+
+    <main class="page-content">
+        <section class="dashboard-section">
+            <div class="container">
+                <div class="dashboard-header">
+                    <div>
+                        <h2>Warehouses</h2>
+                        <p class="section-subtitle">Operational status and capacity by location</p>
+                    </div>
+                </div>
+
+                <div class="cards-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Warehouses</div>
+                        <div class="stat-value" id="stat-total-warehouses">--</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Active</div>
+                        <div class="stat-value" id="stat-active-warehouses">--</div>
+                    </div>
+                    <div class="stat-card warning">
+                        <div class="stat-label">Inactive</div>
+                        <div class="stat-value" id="stat-inactive-warehouses">--</div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3>Filtering</h3>
+                    </div>
+                    <div class="filter-row filters-with-clear">
+                        <select id="warehouse-status-filter" class="form-control">
+                            <option value="">All status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                        <input id="warehouse-search-filter" class="form-control" type="search" placeholder="Search by code" />
+                        <div class="filters-clear">
+                            <button id="clear-filter" class="cta-btn ghost">Clear</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel" style="margin-bottom: 20px;">
+                    <div class="panel-header">
+                        <h3>Warehouse Directory</h3>
+                        <span class="pill">Live</span>
+                    </div>
+
+                    <div id="warehouses-list" class="events-container">
+                        <p class="loading">Loading warehouses...</p>
+                    </div>
+                    <div class="pagination-bar">
+                        <button id="warehouses-prev-page" class="cta-btn ghost pagination-btn" type="button">Prev</button>
+                        <span id="warehouses-page-info" class="pagination-info">Page 1 of 1</span>
+                        <button id="warehouses-next-page" class="cta-btn ghost pagination-btn" type="button">Next</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 Eventide. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="../shared/sidebar.js"></script>
+    <script src="warehouses.js"></script>
+</body>
+
+</html>

@@ -2,6 +2,7 @@
     function getActiveSection(pathname) {
         if (pathname.startsWith('/app/items/')) return 'items';
         if (pathname.startsWith('/app/inventory/')) return 'inventory';
+        if (pathname.startsWith('/app/warehouses/')) return 'warehouses';
         if (pathname.startsWith('/app/events/')) return 'events';
         return 'dashboard';
     }
@@ -14,6 +15,7 @@
                     <a class="sidebar-link ${active === 'dashboard' ? 'active' : ''}" href="/app/">Dashboard</a>
                     <a class="sidebar-link ${active === 'inventory' ? 'active' : ''}" href="/app/inventory/">Inventory</a>
                     <a class="sidebar-link ${active === 'items' ? 'active' : ''}" href="/app/items/">Items</a>
+                    <a class="sidebar-link ${active === 'warehouses' ? 'active' : ''}" href="/app/warehouses/">Warehouses</a>
                     <a class="sidebar-link ${active === 'events' ? 'active' : ''}" href="/app/events/">Events</a>
                 </nav>
                 <div class="sidebar-footer">
