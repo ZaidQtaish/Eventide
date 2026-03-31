@@ -74,6 +74,7 @@ type CreateItemRequest struct {
 type session struct {
 	Username  string
 	ExpiresAt time.Time
+	Role      string
 }
 
 type httpError struct {
@@ -97,6 +98,7 @@ type User struct {
 	ID       int    `json:"id"`
 	Username string `json:"username"`
 	Name     string `json:"name"`
+	Role     string `json:"role"`
 }
 type Warehouse struct {
 	Code   string `json:"code"`

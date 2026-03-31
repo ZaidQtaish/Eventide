@@ -486,7 +486,7 @@ func GetUsersHandler(w http.ResponseWriter, r *http.Request) {
 
 	ctx := context.Background()
 
-	rows, err := db.Query(ctx, "SELECT id, username, name FROM users ORDER BY username")
+	rows, err := db.Query(ctx, "SELECT id, username, name, role FROM users ORDER BY username")
 	if err != nil {
 		http.Error(w, "Query failed", http.StatusInternalServerError)
 		return
@@ -496,7 +496,7 @@ func GetUsersHandler(w http.ResponseWriter, r *http.Request) {
 	var users []User
 	for rows.Next() {
 		var u User
-		if err := rows.Scan(&u.ID, &u.Username, &u.Name); err != nil {
+		if err := rows.Scan(&u.ID, &u.Username, &u.Name, &u.Role); err != nil {
 			continue
 		}
 		users = append(users, u)

@@ -20,6 +20,23 @@ var (
 	sessionMu    sync.RWMutex
 )
 
+func getValidSession(r *http.Request) (session, bool) {
+	cookie, err := r.Cookie(sessionCookieName)
+	if err != nil {
+		return session{}, false
+	}
+
+	sessionMu.RLock()
+	sess, exists := sessionStore[cookie.Value]
+	sessionMu.RUnlock()
+
+	if !exists || sess.ExpiresAt.Before(time.Now()) {
+		return session{}, false
+	}
+
+	return sess, true
+}
+
 // LoginHandler handles user login requests
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -34,10 +51,10 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Query user from database
-	var username, passwordHash string
+	var username, passwordHash, role string
 	err = db.QueryRow(context.Background(),
-		"SELECT username, password_hash FROM users WHERE username = $1", loginReq.Username).
-		Scan(&username, &passwordHash)
+		"SELECT username, password_hash, role FROM users WHERE username = $1", loginReq.Username).
+		Scan(&username, &passwordHash, &role)
 	if err != nil {
 		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 		return
@@ -59,7 +76,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	expires := time.Now().Add(sessionDuration)
 	sessionMu.Lock()
-	sessionStore[sessionID] = session{Username: username, ExpiresAt: expires}
+	sessionStore[sessionID] = session{Username: username, Role: role, ExpiresAt: expires}
 	sessionMu.Unlock()
 
 	http.SetCookie(w, &http.Cookie{
@@ -88,31 +105,53 @@ func generateSessionID() (string, error) {
 
 // GetSessionUser retrieves the username from a valid session cookie; returns empty string if invalid/expired
 func GetSessionUser(r *http.Request) string {
-	cookie, err := r.Cookie(sessionCookieName)
-	if err != nil {
-		return ""
-	}
-
-	sessionMu.RLock()
-	sess, exists := sessionStore[cookie.Value]
-	sessionMu.RUnlock()
-
-	if !exists || sess.ExpiresAt.Before(time.Now()) {
+	sess, ok := getValidSession(r)
+	if !ok {
 		return ""
 	}
 
 	return sess.Username
 }
 
+func GetSessionRole(r *http.Request) string {
+	sess, ok := getValidSession(r)
+	if !ok {
+		return ""
+	}
+
+	return sess.Role
+}
+
 // RequireAuth is middleware that checks for valid session; calls next if valid, returns 401 otherwise
 func RequireAuth(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if GetSessionUser(r) == "" {
+		if _, ok := getValidSession(r); !ok {
 			w.Header().Set("Content-Type", "application/json")
 			http.Error(w, `{"error":"Unauthorized"}`, http.StatusUnauthorized)
 			return
 		}
 		next(w, r)
+	}
+}
+
+func RequireRole(role string) func(http.HandlerFunc) http.HandlerFunc {
+	return func(next http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			sess, ok := getValidSession(r)
+			if !ok {
+				w.Header().Set("Content-Type", "application/json")
+				http.Error(w, `{"error":"Unauthorized"}`, http.StatusUnauthorized)
+				return
+			}
+
+			if sess.Role != role {
+				w.Header().Set("Content-Type", "application/json")
+				http.Error(w, `{"error":"Forbidden"}`, http.StatusForbidden)
+				return
+			}
+
+			next(w, r)
+		}
 	}
 }
 
