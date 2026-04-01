@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Eventide | Daily History</title>
+	<link rel="stylesheet" href="../style.css" />
+</head>
+
+<body>
+	<div id="sidebar-root"></div>
+
+	<main class="page-content">
+		<section class="dashboard-section">
+			<div class="container">
+				<div class="dashboard-header">
+					<div>
+						<h2>Daily History</h2>
+						<p class="section-subtitle">Daily inbound/outbound movement by item</p>
+					</div>
+				</div>
+
+				<div class="cards-grid">
+					<div class="stat-card">
+						<div class="stat-label">Rows</div>
+						<div class="stat-value" id="stat-history-rows">--</div>
+					</div>
+					<div class="stat-card">
+						<div class="stat-label">Total In</div>
+						<div class="stat-value" id="stat-history-in">--</div>
+					</div>
+					<div class="stat-card warning">
+						<div class="stat-label">Total Out</div>
+						<div class="stat-value" id="stat-history-out">--</div>
+					</div>
+					<div class="stat-card">
+						<div class="stat-label">Net Change</div>
+						<div class="stat-value" id="stat-history-net">--</div>
+					</div>
+				</div>
+
+				<div class="panel">
+					<div class="panel-header">
+						<h3>Filters</h3>
+					</div>
+					<div class="filter-row filters-with-clear">
+						<input id="start-date-filter" class="form-control" type="date" />
+						<input id="end-date-filter" class="form-control" type="date" />
+						<select id="item-filter" class="form-control">
+							<option value="">All items</option>
+						</select>
+						<div class="filters-clear">
+							<button id="apply-filter" class="cta-btn primary" type="button">Apply</button>
+							<button id="clear-filter" class="cta-btn ghost" type="button">Clear</button>
+						</div>
+					</div>
+				</div>
+
+				<div class="panel" style="margin-bottom: 20px;">
+					<div class="panel-header">
+						<h3>Statements</h3>
+						<span class="pill">Daily</span>
+					</div>
+					<div id="daily-history-list" class="events-container">
+						<p class="loading">Apply filters to load daily history.</p>
+					</div>
+					<div class="pagination-bar">
+						<button id="history-prev-page" class="cta-btn ghost pagination-btn" type="button">Prev</button>
+						<span id="history-page-info" class="pagination-info">Page 1 of 1</span>
+						<button id="history-next-page" class="cta-btn ghost pagination-btn" type="button">Next</button>
+					</div>
+				</div>
+			</div>
+		</section>
+	</main>
+
+	<footer class="footer">
+		<div class="container">
+			<p>&copy; 2026 Eventide. All rights reserved.</p>
+		</div>
+	</footer>
+
+	<script src="../shared/sidebar.js"></script>
+	<script src="daily-history.js"></script>
+</body>
+
+</html>

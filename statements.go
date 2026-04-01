@@ -14,8 +14,8 @@ func GetDailyStatements(ctx context.Context, startDate, endDate string, itemID *
 			i.name as item_name,
 			COALESCE(SUM(CASE WHEN e.quantity_change > 0 THEN e.quantity_change ELSE 0 END), 0) as in_quantity,
 			COALESCE(SUM(CASE WHEN e.quantity_change < 0 THEN ABS(e.quantity_change) ELSE 0 END), 0) as out_quantity
-		FROM inventory_events e
-		JOIN items i ON e.item_id = i.item_id
+		FROM events e
+		JOIN items i ON e.item_id = i.id
 		WHERE DATE(e.timestamp) >= $1 AND DATE(e.timestamp) <= $2
 	`
 
