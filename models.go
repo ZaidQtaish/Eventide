@@ -41,12 +41,14 @@ type Event struct {
 }
 
 type DailyStatement struct {
-	Date        time.Time `json:"date"`
-	ItemID      int       `json:"item_id"`
-	ItemName    string    `json:"item_name"`
-	InQuantity  int       `json:"in_quantity"`
-	OutQuantity int       `json:"out_quantity"`
-	NetChange   int       `json:"net_change"`
+	Date          time.Time `json:"date"`
+	ItemID        int       `json:"item_id"`
+	ItemName      string    `json:"item_name"`
+	WarehouseID   int       `json:"warehouse_id"`
+	WarehouseCode string    `json:"warehouse_code"`
+	InQuantity    int       `json:"in_quantity"`
+	OutQuantity   int       `json:"out_quantity"`
+	NetChange     int       `json:"net_change"`
 }
 
 type LoginRequest struct {

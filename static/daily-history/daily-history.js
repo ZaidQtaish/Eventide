@@ -3,6 +3,7 @@
 	const startDateInput = document.getElementById('start-date-filter');
 	const endDateInput = document.getElementById('end-date-filter');
 	const itemFilter = document.getElementById('item-filter');
+	const warehouseFilter = document.getElementById('warehouse-filter');
 	const applyFilterBtn = document.getElementById('apply-filter');
 	const clearFilterBtn = document.getElementById('clear-filter');
 	const prevPageBtn = document.getElementById('history-prev-page');
@@ -124,6 +125,8 @@
 			const itemName = itemMeta?.name || row.item_name || 'Unknown item';
 			const sku = itemMeta?.sku || '';
 			const skuLabel = sku || 'SKU N/A';
+			const warehouseCode = String(row.warehouse_code || '').trim();
+			const warehouseLabel = warehouseCode ? ` · ${warehouseCode}` : '';
 			const card = document.createElement('div');
 			card.className = `event-row ${rowClass}`;
 			card.innerHTML = `
@@ -131,7 +134,7 @@
 					${buildSkuThumb(sku)}
 					<div class="event-details">
 						<div class="event-title">${itemName} (${skuLabel})</div>
-						<div class="event-meta">${formatDate(row.date)} · In ${row.in_quantity ?? 0} · Out ${row.out_quantity ?? 0}</div>
+						<div class="event-meta">${formatDate(row.date)}${warehouseLabel} · In ${row.in_quantity ?? 0} · Out ${row.out_quantity ?? 0}</div>
 					</div>
 				</div>
 				<div class="event-qty">${net >= 0 ? '+' : ''}${net}</div>
@@ -169,6 +172,27 @@
 		}
 	}
 
+	async function populateWarehouseFilter() {
+		if (!warehouseFilter) return;
+		try {
+			const res = await fetch('/api/warehouses');
+			if (!res.ok) return;
+
+			const warehouses = await res.json();
+			warehouseFilter.innerHTML = '<option value="">All warehouses</option>';
+			(warehouses || []).forEach((warehouse) => {
+				const code = String(warehouse.code || '').trim();
+				if (!code) return;
+				const option = document.createElement('option');
+				option.value = code;
+				option.textContent = code;
+				warehouseFilter.appendChild(option);
+			});
+		} catch (err) {
+			console.error('Failed to load warehouse filter', err);
+		}
+	}
+
 	async function loadStatements() {
 		if (!list) return;
 		const startDate = (startDateInput?.value || '').trim();
@@ -189,6 +213,11 @@
 		const selectedItem = (itemFilter?.value || '').trim();
 		if (selectedItem) {
 			params.set('item_id', selectedItem);
+		}
+
+		const selectedWarehouse = (warehouseFilter?.value || '').trim();
+		if (selectedWarehouse) {
+			params.set('warehouse_code', selectedWarehouse);
 		}
 
 		list.innerHTML = '<p class="loading">Loading daily history...</p>';
@@ -212,6 +241,7 @@
 		clearFilterBtn?.addEventListener('click', () => {
 			setDefaultDates();
 			if (itemFilter) itemFilter.value = '';
+			if (warehouseFilter) warehouseFilter.value = '';
 			loadStatements().catch((err) => {
 				if (list) list.innerHTML = `<p class="loading">Error loading daily history: ${err.message}</p>`;
 				updateStats([]);
@@ -233,7 +263,7 @@
 	async function init() {
 		setDefaultDates();
 		bindEvents();
-		await populateItemsFilter();
+		await Promise.all([populateItemsFilter(), populateWarehouseFilter()]);
 		await loadStatements();
 	}
 

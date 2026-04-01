@@ -452,6 +452,7 @@ func GetDailyStatementsHandler(w http.ResponseWriter, r *http.Request) {
 	startDate := r.URL.Query().Get("start_date")
 	endDate := r.URL.Query().Get("end_date")
 	itemIDStr := r.URL.Query().Get("item_id")
+	warehouseCodeRaw := strings.TrimSpace(r.URL.Query().Get("warehouse_code"))
 
 	if startDate == "" || endDate == "" {
 		http.Error(w, "start_date and end_date parameters are required", http.StatusBadRequest)
@@ -468,7 +469,12 @@ func GetDailyStatementsHandler(w http.ResponseWriter, r *http.Request) {
 		itemID = &id
 	}
 
-	statements, err := GetDailyStatements(ctx, startDate, endDate, itemID)
+	var warehouseCode *string
+	if warehouseCodeRaw != "" {
+		warehouseCode = &warehouseCodeRaw
+	}
+
+	statements, err := GetDailyStatements(ctx, startDate, endDate, itemID, warehouseCode)
 	if err != nil {
 		http.Error(w, "Query failed", http.StatusInternalServerError)
 		return

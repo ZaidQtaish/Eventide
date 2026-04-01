@@ -569,12 +569,13 @@ a {
 
 .filters-with-clear {
     align-items: stretch;
-    gap: 12px;
+    gap: 1px;
 }
 
 .filters-clear {
     margin-left: auto;
     display: flex;
+    gap: 10px;
     align-items: center;
 }
 
