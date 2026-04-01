@@ -80,11 +80,16 @@
 		list.innerHTML = '';
 		paginated.forEach((row) => {
 			const isActive = row.status === 'active';
+			const warehouseCode = row.code || 'Unknown warehouse';
+			const inventoryLink = row.code ? `/app/inventory/?warehouse=${encodeURIComponent(row.code)}` : '/app/inventory/';
 			const card = document.createElement('div');
-			card.className = `event-row ${isActive ? 'event-in' : 'event-out'}`;
+			card.className = `event-row warehouse-link-card ${isActive ? 'event-in' : 'event-out'}`;
+			card.dataset.link = inventoryLink;
+			card.tabIndex = 0;
+			card.setAttribute('role', 'link');
 			card.innerHTML = `
 				<div class="event-details">
-					<div class="event-title">${row.code || 'Unknown warehouse'}</div>
+					<div class="event-title">${warehouseCode}</div>
 					<div class="event-meta">Status: ${row.status || 'unknown'}</div>
 				</div>
 				<div class="pill ${isActive ? '' : 'warning'}">${isActive ? 'ACTIVE' : 'INACTIVE'}</div>
@@ -130,6 +135,28 @@
 		nextPageBtn?.addEventListener('click', () => {
 			currentPage += 1;
 			render(cachedWarehouses);
+		});
+
+		list?.addEventListener('click', (event) => {
+			const target = event.target;
+			if (!(target instanceof HTMLElement)) return;
+			const card = target.closest('.warehouse-link-card');
+			if (!(card instanceof HTMLElement)) return;
+
+			const link = card.dataset.link;
+			if (!link) return;
+			window.location.href = link;
+		});
+
+		list?.addEventListener('keydown', (event) => {
+			if (event.key !== 'Enter' && event.key !== ' ') return;
+			const target = event.target;
+			if (!(target instanceof HTMLElement) || !target.classList.contains('warehouse-link-card')) return;
+
+			event.preventDefault();
+			const link = target.dataset.link;
+			if (!link) return;
+			window.location.href = link;
 		});
 	}
 

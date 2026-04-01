@@ -457,6 +457,24 @@ a {
     color: var(--text-dark);
 }
 
+.event-title a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.event-title a:hover {
+    color: inherit;
+    text-decoration: underline;
+}
+
+.warehouse-link-card {
+    cursor: pointer;
+}
+
+.warehouse-link-card:hover {
+    box-shadow: var(--shadow);
+}
+
 .event-meta {
     color: var(--text-secondary);
     font-size: 13px;
