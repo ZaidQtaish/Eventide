@@ -388,6 +388,25 @@ a {
     gap: 12px;
 }
 
+.day-separator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.day-separator::before,
+.day-separator::after {
+    content: '';
+    height: 1px;
+    background: var(--border);
+    flex: 1;
+}
+
 .event-row {
     display: flex;
     align-items: center;

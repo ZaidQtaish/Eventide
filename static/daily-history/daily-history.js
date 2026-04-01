@@ -17,6 +17,31 @@
 	let cachedRows = [];
 	let currentPage = 1;
 	const PAGE_SIZE = 12;
+	const itemsById = new Map();
+
+	function buildSkuThumb(sku) {
+		const safeSku = String(sku || '').trim();
+		const encodedSku = encodeURIComponent(safeSku);
+		return `
+			<div class="sku-thumb">
+				<img class="sku-thumb-img" src="/public/${encodedSku}.png" alt="${safeSku || 'Item'} image" loading="lazy" />
+				<span class="sku-thumb-fallback">IMG</span>
+			</div>
+		`;
+	}
+
+	function applySkuThumbFallback(scope) {
+		const images = scope.querySelectorAll('.sku-thumb-img');
+		images.forEach((img) => {
+			img.addEventListener('load', () => {
+				img.closest('.sku-thumb')?.classList.add('has-image');
+			});
+			img.addEventListener('error', () => {
+				img.style.display = 'none';
+				img.closest('.sku-thumb')?.classList.remove('has-image');
+			});
+		});
+	}
 
 	function setDefaultDates() {
 		const today = new Date();
@@ -31,6 +56,13 @@
 		if (!raw) return 'N/A';
 		const d = new Date(raw);
 		return d.toLocaleDateString(undefined, { dateStyle: 'medium' });
+	}
+
+	function dateGroupKey(raw) {
+		if (!raw) return '';
+		const parsed = new Date(raw);
+		if (Number.isNaN(parsed.getTime())) return String(raw);
+		return parsed.toISOString().slice(0, 10);
 	}
 
 	function updateStats(rows) {
@@ -73,21 +105,39 @@
 
 		const start = (currentPage - 1) * PAGE_SIZE;
 		const paginated = rows.slice(start, start + PAGE_SIZE);
+		let previousDateKey = '';
 
 		list.innerHTML = '';
 		paginated.forEach((row) => {
+			const currentDateKey = dateGroupKey(row.date);
+			if (currentDateKey !== previousDateKey) {
+				const separator = document.createElement('div');
+				separator.className = 'day-separator';
+				separator.innerHTML = `<span>${formatDate(row.date)}</span>`;
+				list.appendChild(separator);
+				previousDateKey = currentDateKey;
+			}
+
 			const net = Number(row.net_change || 0);
 			const rowClass = net >= 0 ? 'event-in' : 'event-out';
+			const itemMeta = itemsById.get(Number(row.item_id));
+			const itemName = itemMeta?.name || row.item_name || 'Unknown item';
+			const sku = itemMeta?.sku || '';
+			const skuLabel = sku || 'SKU N/A';
 			const card = document.createElement('div');
 			card.className = `event-row ${rowClass}`;
 			card.innerHTML = `
-				<div class="event-details">
-					<div class="event-title">${row.item_name || 'Unknown item'} (ID: ${row.item_id ?? '-'})</div>
-					<div class="event-meta">${formatDate(row.date)} · In ${row.in_quantity ?? 0} · Out ${row.out_quantity ?? 0}</div>
+				<div class="event-main">
+					${buildSkuThumb(sku)}
+					<div class="event-details">
+						<div class="event-title">${itemName} (${skuLabel})</div>
+						<div class="event-meta">${formatDate(row.date)} · In ${row.in_quantity ?? 0} · Out ${row.out_quantity ?? 0}</div>
+					</div>
 				</div>
 				<div class="event-qty">${net >= 0 ? '+' : ''}${net}</div>
 			`;
 			list.appendChild(card);
+			applySkuThumbFallback(card);
 		});
 
 		updatePaginationUI(totalPages);
@@ -100,10 +150,15 @@
 			if (!res.ok) return;
 
 			const items = await res.json();
+			itemsById.clear();
 			itemFilter.innerHTML = '<option value="">All items</option>';
 			(items || []).forEach((item) => {
 				const id = Number(item.item_id);
 				if (!Number.isFinite(id)) return;
+				itemsById.set(id, {
+					name: item.name || 'Unnamed item',
+					sku: item.sku || '',
+				});
 				const option = document.createElement('option');
 				option.value = String(id);
 				option.textContent = `${item.name || 'Unnamed item'} (${item.sku || 'SKU N/A'})`;
