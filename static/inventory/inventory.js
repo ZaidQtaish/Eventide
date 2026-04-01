@@ -7,6 +7,7 @@
     const prevPageBtn = document.getElementById('inventory-prev-page');
     const nextPageBtn = document.getElementById('inventory-next-page');
     const pageInfo = document.getElementById('inventory-page-info');
+    const inventoryContext = document.getElementById('inventory-context');
 
     const initialWarehouseParam = (new URLSearchParams(window.location.search).get('warehouse') || '').trim().toLowerCase();
     let cachedRows = [];
@@ -58,10 +59,19 @@
                 const hasMatch = Array.from(warehouseFilter.options).some((opt) => opt.value === initialWarehouseParam);
                 if (hasMatch) {
                     warehouseFilter.value = initialWarehouseParam;
+                } else {
+                    const fallbackOption = document.createElement('option');
+                    fallbackOption.value = initialWarehouseParam;
+                    fallbackOption.textContent = initialWarehouseParam.toUpperCase();
+                    warehouseFilter.appendChild(fallbackOption);
+                    warehouseFilter.value = initialWarehouseParam;
                 }
             }
         } catch (err) {
             console.error('Failed to load warehouses filter options', err);
+            if (warehouseFilter && initialWarehouseParam) {
+                warehouseFilter.value = initialWarehouseParam;
+            }
         }
     }
 
@@ -102,6 +112,7 @@
         if (!list) return;
         if (!data || data.length === 0) {
             list.innerHTML = '<p class="loading">No stock found.</p>';
+            updateWarehouseContext([]);
             updatePaginationUI(0);
             return;
         }
@@ -109,9 +120,13 @@
         const filtered = data.map(normalizeRow).filter(matchesFilters);
         if (filtered.length === 0) {
             list.innerHTML = '<p class="loading">No matching stock for current filters.</p>';
+            updateWarehouseContext([]);
             updatePaginationUI(0);
             return;
         }
+
+        updateWarehouseContext(filtered);
+        const hasWarehouseFilter = selectedWarehouseCode() !== '';
 
         const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
         if (currentPage > totalPages) currentPage = totalPages;
@@ -124,13 +139,18 @@
         paginated.forEach(row => {
             const el = document.createElement('div');
             const isLow = row.current_quantity <= (row.minimum_quantity || 0);
+            const warehouseCode = row.warehouse_code || row.warehouse_id || 'No warehouse';
+            const warehouseChip = !hasWarehouseFilter ? `<span class="warehouse-chip" title="Warehouse">${warehouseCode}</span>` : '';
             el.className = `event-row ${isLow ? 'event-out' : 'event-in'}`;
             el.innerHTML = `
                 <div class="event-main">
                     ${buildSkuThumb(row.sku)}
                     <div class="event-details">
-                        <div class="event-title">${row.name || 'Unknown item'} (${row.sku || 'SKU N/A'})</div>
-                        <div class="event-meta">${row.warehouse_code || row.warehouse_id || 'No warehouse'} · Min ${row.minimum_quantity ?? '-'} · Updated ${formatDate(row.last_updated)}</div>
+                        <div class="event-title-line">
+                            <div class="event-title">${row.name || 'Unknown item'} (${row.sku || 'SKU N/A'})</div>
+                            ${warehouseChip}
+                        </div>
+                        <div class="event-meta">Min ${row.minimum_quantity ?? '-'} · Updated ${formatDate(row.last_updated)}</div>
                     </div>
                 </div>
                 <div class="event-qty" title="Current quantity">${row.current_quantity}</div>
@@ -140,6 +160,25 @@
         });
 
         updatePaginationUI(totalPages);
+    }
+
+    function selectedWarehouseCode() {
+        return String(warehouseFilter?.value || '').trim();
+    }
+
+    function updateWarehouseContext(rows) {
+        if (!inventoryContext) return;
+        const selectedWarehouse = selectedWarehouseCode();
+        if (!selectedWarehouse) {
+            inventoryContext.hidden = true;
+            inventoryContext.innerHTML = '';
+            return;
+        }
+
+        inventoryContext.hidden = false;
+        inventoryContext.innerHTML = `
+            <span class="warehouse-context-pill">Warehouse: ${selectedWarehouse.toUpperCase()}</span>
+        `;
     }
 
     function updatePaginationUI(totalPages) {

@@ -8,6 +8,7 @@
     const prevPageBtn = document.getElementById('events-prev-page');
     const nextPageBtn = document.getElementById('events-next-page');
     const pageInfo = document.getElementById('events-page-info');
+    const eventsContext = document.getElementById('events-context');
 
     let cachedEvents = [];
     let currentPage = 1;
@@ -92,6 +93,7 @@
         if (!list) return;
         if (!events || events.length === 0) {
             list.innerHTML = '<p class="loading">No inventory events found.</p>';
+            updateWarehouseContext([]);
             updatePaginationUI(0);
             return;
         }
@@ -100,9 +102,13 @@
 
         if (filtered.length === 0) {
             list.innerHTML = '<p class="loading">No matching events for current filters.</p>';
+            updateWarehouseContext([]);
             updatePaginationUI(0);
             return;
         }
+
+        updateWarehouseContext(filtered);
+        const hasWarehouseFilter = selectedWarehouseCode() !== '';
 
         const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
         if (currentPage > totalPages) currentPage = totalPages;
@@ -116,6 +122,8 @@
             const row = document.createElement('div');
             const badgeType = getEventBadgeType(evt.type);
             row.className = `event-row ${badgeType}`;
+            const warehouseCode = evt.warehouse_code || 'No warehouse';
+            const warehouseChip = !hasWarehouseFilter ? `<span class="warehouse-chip" title="Warehouse">${warehouseCode}</span>` : '';
 
             const icon = document.createElement('div');
             icon.className = 'event-icon';
@@ -124,8 +132,11 @@
             const details = document.createElement('div');
             details.className = 'event-details';
             details.innerHTML = `
-                <div class="event-title">${evt.item_name || 'Unknown item'} (${evt.sku || 'SKU N/A'})</div>
-                <div class="event-meta">${evt.warehouse_code || 'No warehouse'} · ${evt.username || 'Unknown user'} · ${evt.reason_code || 'No reason'} · ${formatDate(evt.timestamp)}</div>
+                <div class="event-title-line">
+                    <div class="event-title">${evt.item_name || 'Unknown item'} (${evt.sku || 'SKU N/A'})</div>
+                    ${warehouseChip}
+                </div>
+                <div class="event-meta">${evt.username || 'Unknown user'} · ${evt.reason_code || 'No reason'} · ${formatDate(evt.timestamp)}</div>
             `;
 
             const qty = document.createElement('div');
@@ -140,6 +151,25 @@
         });
 
         updatePaginationUI(totalPages);
+    }
+
+    function selectedWarehouseCode() {
+        return String(warehouseFilter?.value || '').trim();
+    }
+
+    function updateWarehouseContext(rows) {
+        if (!eventsContext) return;
+        const selectedWarehouse = selectedWarehouseCode();
+        if (!selectedWarehouse) {
+            eventsContext.hidden = true;
+            eventsContext.innerHTML = '';
+            return;
+        }
+
+        eventsContext.hidden = false;
+        eventsContext.innerHTML = `
+            <span class="warehouse-context-pill">Warehouse: ${selectedWarehouse.toUpperCase()}</span>
+        `;
     }
 
     function updatePaginationUI(totalPages) {

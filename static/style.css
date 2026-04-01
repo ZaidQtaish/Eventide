@@ -407,6 +407,54 @@ a {
     flex: 1;
 }
 
+.daily-history-context {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: -8px 0 14px;
+    flex-wrap: wrap;
+}
+
+.warehouse-context-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 12px;
+    border-radius: 999px;
+    border: 1px solid #bfdbfe;
+    background: #eff6ff;
+    color: #1e3a8a;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+}
+
+.daily-history-context-meta {
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.event-title-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.warehouse-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 9px;
+    border-radius: 999px;
+    border: 1px solid #dbeafe;
+    background: #f8fbff;
+    color: #1d4ed8;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1.4;
+}
+
 .event-row {
     display: flex;
     align-items: center;

@@ -9,6 +9,7 @@
 	const prevPageBtn = document.getElementById('history-prev-page');
 	const nextPageBtn = document.getElementById('history-next-page');
 	const pageInfo = document.getElementById('history-page-info');
+	const historyContext = document.getElementById('daily-history-context');
 
 	const statRowsEl = document.getElementById('stat-history-rows');
 	const statInEl = document.getElementById('stat-history-in');
@@ -88,17 +89,39 @@
 		if (nextPageBtn) nextPageBtn.disabled = !hasPages || safeCurrent >= safeTotal;
 	}
 
+	function selectedWarehouseCode() {
+		return String(warehouseFilter?.value || '').trim();
+	}
+
+	function updateHistoryContext(rows) {
+		if (!historyContext) return;
+		const selectedWarehouse = selectedWarehouseCode();
+		if (!selectedWarehouse) {
+			historyContext.hidden = true;
+			historyContext.innerHTML = '';
+			return;
+		}
+        
+		historyContext.hidden = false;
+		historyContext.innerHTML = `
+			<span class="warehouse-context-pill">Warehouse: ${selectedWarehouse}</span>
+		`;
+	}
+
 	function render(rows) {
 		if (!list) return;
+		const hasWarehouseFilter = selectedWarehouseCode() !== '';
 
 		if (!rows || rows.length === 0) {
 			list.innerHTML = '<p class="loading">No statements for selected filters.</p>';
+			updateHistoryContext([]);
 			updatePaginationUI(0);
 			updateStats([]);
 			return;
 		}
 
 		updateStats(rows);
+		updateHistoryContext(rows);
 
 		const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
 		if (currentPage > totalPages) currentPage = totalPages;
@@ -126,15 +149,20 @@
 			const sku = itemMeta?.sku || '';
 			const skuLabel = sku || 'SKU N/A';
 			const warehouseCode = String(row.warehouse_code || '').trim();
-			const warehouseLabel = warehouseCode ? ` · ${warehouseCode}` : '';
+			const warehouseChip = !hasWarehouseFilter && warehouseCode
+				? `<span class="warehouse-chip" title="Warehouse">${warehouseCode}</span>`
+				: '';
 			const card = document.createElement('div');
 			card.className = `event-row ${rowClass}`;
 			card.innerHTML = `
 				<div class="event-main">
 					${buildSkuThumb(sku)}
 					<div class="event-details">
-						<div class="event-title">${itemName} (${skuLabel})</div>
-						<div class="event-meta">${formatDate(row.date)}${warehouseLabel} · In ${row.in_quantity ?? 0} · Out ${row.out_quantity ?? 0}</div>
+						<div class="event-title-line">
+							<div class="event-title">${itemName} (${skuLabel})</div>
+							${warehouseChip}
+						</div>
+						<div class="event-meta">${formatDate(row.date)} · In ${row.in_quantity ?? 0} · Out ${row.out_quantity ?? 0}</div>
 					</div>
 				</div>
 				<div class="event-qty">${net >= 0 ? '+' : ''}${net}</div>
