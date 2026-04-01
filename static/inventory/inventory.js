@@ -7,6 +7,8 @@
     const prevPageBtn = document.getElementById('inventory-prev-page');
     const nextPageBtn = document.getElementById('inventory-next-page');
     const pageInfo = document.getElementById('inventory-page-info');
+
+    const initialWarehouseParam = (new URLSearchParams(window.location.search).get('warehouse') || '').trim().toLowerCase();
     let cachedRows = [];
     let currentPage = 1;
     const PAGE_SIZE = 10;
@@ -51,6 +53,13 @@
                 option.textContent = code;
                 warehouseFilter.appendChild(option);
             });
+
+            if (initialWarehouseParam) {
+                const hasMatch = Array.from(warehouseFilter.options).some((opt) => opt.value === initialWarehouseParam);
+                if (hasMatch) {
+                    warehouseFilter.value = initialWarehouseParam;
+                }
+            }
         } catch (err) {
             console.error('Failed to load warehouses filter options', err);
         }
