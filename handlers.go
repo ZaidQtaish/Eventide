@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -66,6 +67,30 @@ func parseUserIDFromPath(path string) (int, error) {
 	}
 
 	return strconv.Atoi(userIDPart)
+}
+
+func parseWarehouseCodeFromPath(path string) (string, error) {
+	const prefix = "/api/warehouses/"
+	if !strings.HasPrefix(path, prefix) {
+		return "", strconv.ErrSyntax
+	}
+
+	codePart := strings.Trim(strings.TrimPrefix(path, prefix), "/")
+	if codePart == "" || strings.Contains(codePart, "/") {
+		return "", strconv.ErrSyntax
+	}
+
+	decoded, err := url.PathUnescape(codePart)
+	if err != nil {
+		return "", err
+	}
+
+	decoded = strings.TrimSpace(decoded)
+	if decoded == "" {
+		return "", strconv.ErrSyntax
+	}
+
+	return decoded, nil
 }
 
 // EventsHandler routes GET/POST for /events
@@ -574,6 +599,73 @@ func GetWarehousesHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(warehouses)
+}
+
+func WarehousesHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/api/warehouses" {
+		code, err := parseWarehouseCodeFromPath(r.URL.Path)
+		if err != nil {
+			http.Error(w, "Invalid warehouse code", http.StatusBadRequest)
+			return
+		}
+
+		switch r.Method {
+		case http.MethodPut:
+			UpdateWarehouseStatusHandler(w, r, code)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+		return
+	}
+
+	switch r.Method {
+	case http.MethodGet:
+		GetWarehousesHandler(w, r)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func UpdateWarehouseStatusHandler(w http.ResponseWriter, r *http.Request, code string) {
+	if GetSessionRole(r) != "admin" {
+		w.Header().Set("Content-Type", "application/json")
+		http.Error(w, "Only admins can update warehouse status", http.StatusForbidden)
+		return
+	}
+
+	var req struct {
+		Status string `json:"status"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	status := strings.ToLower(strings.TrimSpace(req.Status))
+	if status != "active" && status != "inactive" {
+		http.Error(w, "status must be active or inactive", http.StatusBadRequest)
+		return
+	}
+
+	ctx := r.Context()
+	var updated Warehouse
+	err := db.QueryRow(
+		ctx,
+		"UPDATE warehouses SET status = $1 WHERE code = $2 RETURNING code, status",
+		status,
+		code,
+	).Scan(&updated.Code, &updated.Status)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			http.Error(w, "warehouse not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Failed to update warehouse", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(updated)
 }
 
 func CreateUserHandler(w http.ResponseWriter, r *http.Request) {

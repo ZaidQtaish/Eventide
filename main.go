@@ -24,7 +24,8 @@ func main() {
 	http.HandleFunc("/logout", LogoutHandler)
 	http.HandleFunc("/api/users", RequireAuth(UsersHandler))
 	http.HandleFunc("/api/users/", RequireAuth(UsersHandler))
-	http.HandleFunc("/api/warehouses", RequireAuth(GetWarehousesHandler))
+	http.HandleFunc("/api/warehouses", RequireAuth(WarehousesHandler))
+	http.HandleFunc("/api/warehouses/", RequireAuth(WarehousesHandler))
 	http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("./public"))))
 	http.Handle("/style.css", http.FileServer(http.Dir("./static")))
 

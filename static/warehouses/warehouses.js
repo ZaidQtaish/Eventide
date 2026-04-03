@@ -13,7 +13,19 @@
 
 	let cachedWarehouses = [];
 	let currentPage = 1;
+	let isAdminUser = false;
 	const PAGE_SIZE = 8;
+
+	async function loadSessionRole() {
+		try {
+			const res = await fetch('/api/session');
+			if (!res.ok) return;
+			const payload = await res.json();
+			isAdminUser = String(payload.role || '').trim().toLowerCase() === 'admin';
+		} catch {
+			isAdminUser = false;
+		}
+	}
 
 	function normalizeWarehouse(row) {
 		return {
@@ -82,6 +94,16 @@
 			const isActive = row.status === 'active';
 			const warehouseCode = row.code || 'Unknown warehouse';
 			const inventoryLink = row.code ? `/app/inventory/?warehouse=${encodeURIComponent(row.code)}` : '/app/inventory/';
+			const statusControl = isAdminUser
+				? `
+					<div class="warehouse-status-wrap">
+						<select class="warehouse-status-select ${row.status === 'active' ? 'is-active' : 'is-inactive'}" data-warehouse-code="${warehouseCode}" aria-label="Warehouse status">
+							<option value="active" ${row.status === 'active' ? 'selected' : ''}>Active</option>
+							<option value="inactive" ${row.status === 'inactive' ? 'selected' : ''}>Inactive</option>
+						</select>
+					</div>
+				`
+				: `<div class="pill ${isActive ? '' : 'warning'}">${isActive ? 'ACTIVE' : 'INACTIVE'}</div>`;
 			const card = document.createElement('div');
 			card.className = `event-row warehouse-link-card ${isActive ? 'event-in' : 'event-out'}`;
 			card.dataset.link = inventoryLink;
@@ -90,9 +112,9 @@
 			card.innerHTML = `
 				<div class="event-details">
 					<div class="event-title">${warehouseCode}</div>
-					<div class="event-meta">Status: ${row.status || 'unknown'}</div>
+					<div class="event-meta">Click row to open inventory</div>
 				</div>
-				<div class="pill ${isActive ? '' : 'warning'}">${isActive ? 'ACTIVE' : 'INACTIVE'}</div>
+				${statusControl}
 			`;
 			list.appendChild(card);
 		});
@@ -108,6 +130,27 @@
 
 		const data = await response.json();
 		cachedWarehouses = (data || []).map(normalizeWarehouse);
+		updateStats(cachedWarehouses);
+		render(cachedWarehouses);
+	}
+
+	async function updateWarehouseStatus(code, status) {
+		const response = await fetch(`/api/warehouses/${encodeURIComponent(code)}`, {
+			method: 'PUT',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ status }),
+		});
+
+		if (!response.ok) {
+			throw new Error((await response.text()) || 'Update failed');
+		}
+
+		const updated = normalizeWarehouse(await response.json());
+		const idx = cachedWarehouses.findIndex((w) => w.code === updated.code);
+		if (idx >= 0) {
+			cachedWarehouses[idx] = updated;
+		}
+
 		updateStats(cachedWarehouses);
 		render(cachedWarehouses);
 	}
@@ -140,6 +183,7 @@
 		list?.addEventListener('click', (event) => {
 			const target = event.target;
 			if (!(target instanceof HTMLElement)) return;
+			if (target.closest('.warehouse-status-select')) return;
 			const card = target.closest('.warehouse-link-card');
 			if (!(card instanceof HTMLElement)) return;
 
@@ -158,11 +202,36 @@
 			if (!link) return;
 			window.location.href = link;
 		});
+
+		list?.addEventListener('change', (event) => {
+			if (!isAdminUser) return;
+			const target = event.target;
+			if (!(target instanceof HTMLSelectElement)) return;
+			if (!target.classList.contains('warehouse-status-select')) return;
+
+			const code = String(target.dataset.warehouseCode || '').trim();
+			const nextStatus = String(target.value || '').trim().toLowerCase();
+			if (!code || (nextStatus !== 'active' && nextStatus !== 'inactive')) return;
+
+			const existing = cachedWarehouses.find((w) => w.code === code);
+			const previousStatus = existing?.status || '';
+			if (previousStatus === nextStatus) return;
+
+			target.disabled = true;
+			updateWarehouseStatus(code, nextStatus).catch((err) => {
+				target.value = previousStatus || 'active';
+				console.error('Failed to update warehouse status', err);
+				window.alert(`Failed to update ${code}: ${err.message}`);
+			}).finally(() => {
+				target.disabled = false;
+			});
+		});
 	}
 
 	async function init() {
 		bindEvents();
 		try {
+			await loadSessionRole();
 			await loadWarehouses();
 		} catch (err) {
 			if (list) list.innerHTML = `<p class="loading">Error loading warehouses: ${err.message}</p>`;
