@@ -3,6 +3,7 @@
 	const roleFilter = document.getElementById('users-role-filter');
 	const searchFilter = document.getElementById('users-search-filter');
 	const clearFilterBtn = document.getElementById('users-clear-filter');
+	const openCreateUserBtn = document.getElementById('open-create-user-modal');
 
 	const totalCountEl = document.getElementById('users-total-count');
 	const adminCountEl = document.getElementById('users-admin-count');
@@ -10,6 +11,189 @@
 	const shownCountEl = document.getElementById('users-shown-count');
 
 	let cachedUsers = [];
+	let currentRole = '';
+
+	function getModalMarkup() {
+		return `
+			<div id="create-user-modal" class="event-modal is-hidden" aria-hidden="true">
+				<div class="event-modal-backdrop" data-close-modal="true"></div>
+				<div class="event-modal-card panel" role="dialog" aria-modal="true" aria-labelledby="create-user-title">
+					<div class="panel-header">
+						<h3 id="create-user-title">Create User</h3>
+						<button id="close-create-user-modal" class="cta-btn ghost event-modal-close" type="button" aria-label="Close user form">Close</button>
+					</div>
+
+					<form id="create-user-form" class="event-form-grid">
+						<div class="form-group">
+							<label for="new-user-name">Name</label>
+							<input id="new-user-name" class="form-control" type="text" required placeholder="Jane Doe" />
+						</div>
+
+						<div class="form-group">
+							<label for="new-user-username">Username</label>
+							<input id="new-user-username" class="form-control" type="text" required placeholder="jane" />
+						</div>
+
+						<div class="form-group">
+							<label for="new-user-password">Password</label>
+							<input id="new-user-password" class="form-control" type="password" required placeholder="Minimum 6 chars" minlength="6" />
+						</div>
+
+						<div class="form-group">
+							<label for="new-user-role">Role</label>
+							<select id="new-user-role" class="form-control" required>
+								<option value="staff">Staff</option>
+								<option value="admin">Admin</option>
+							</select>
+						</div>
+
+						<div class="form-group">
+							<label for="new-user-phone">Phone (optional)</label>
+							<input id="new-user-phone" class="form-control" type="text" placeholder="+1 555 123 4567" />
+						</div>
+
+						<div class="event-form-actions">
+							<button id="create-user-btn" type="submit" class="cta-btn primary">Create User</button>
+						</div>
+
+						<p id="create-user-message" class="form-message" aria-live="polite"></p>
+					</form>
+				</div>
+			</div>
+		`;
+	}
+
+	function parseErrorMessage(raw) {
+		if (!raw) return 'Failed to create user.';
+		try {
+			const parsed = JSON.parse(raw);
+			return parsed.error || parsed.message || raw;
+		} catch {
+			return raw;
+		}
+	}
+
+	function setFormMessage(msg, kind = '') {
+		const el = document.getElementById('create-user-message');
+		if (!el) return;
+		el.textContent = msg;
+		el.classList.remove('success', 'error');
+		if (kind) el.classList.add(kind);
+	}
+
+	function openCreateModal() {
+		const modal = document.getElementById('create-user-modal');
+		if (!modal) return;
+		modal.classList.remove('is-hidden');
+		modal.setAttribute('aria-hidden', 'false');
+		document.body.classList.add('modal-open');
+		setTimeout(() => {
+			document.getElementById('new-user-name')?.focus();
+		}, 0);
+	}
+
+	function closeCreateModal() {
+		const modal = document.getElementById('create-user-modal');
+		if (!modal) return;
+		modal.classList.add('is-hidden');
+		modal.setAttribute('aria-hidden', 'true');
+		document.body.classList.remove('modal-open');
+	}
+
+	function ensureCreateUserModal() {
+		if (document.getElementById('create-user-modal')) return;
+		document.body.insertAdjacentHTML('beforeend', getModalMarkup());
+
+		document.getElementById('close-create-user-modal')?.addEventListener('click', closeCreateModal);
+		document.getElementById('create-user-modal')?.addEventListener('click', (e) => {
+			const target = e.target;
+			if (target instanceof Element && target.hasAttribute('data-close-modal')) {
+				closeCreateModal();
+			}
+		});
+
+		document.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape') {
+				const modal = document.getElementById('create-user-modal');
+				if (modal && !modal.classList.contains('is-hidden')) closeCreateModal();
+			}
+		});
+
+		document.getElementById('create-user-form')?.addEventListener('submit', async (e) => {
+			e.preventDefault();
+
+			const btn = document.getElementById('create-user-btn');
+			const name = String(document.getElementById('new-user-name')?.value || '').trim();
+			const username = String(document.getElementById('new-user-username')?.value || '').trim();
+			const password = String(document.getElementById('new-user-password')?.value || '').trim();
+			const role = String(document.getElementById('new-user-role')?.value || '').trim().toLowerCase();
+			const phone = String(document.getElementById('new-user-phone')?.value || '').trim();
+
+			if (!name || !username || !password || !role) {
+				setFormMessage('All required fields must be filled.', 'error');
+				return;
+			}
+
+			if (password.length < 6) {
+				setFormMessage('Password must be at least 6 characters.', 'error');
+				return;
+			}
+
+			if (btn) btn.disabled = true;
+			setFormMessage('Creating user...');
+
+			try {
+				const res = await fetch('/api/users', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						name,
+						username,
+						password,
+						role,
+						phone_number: phone,
+					}),
+				});
+
+				if (!res.ok) {
+					const raw = await res.text();
+					throw new Error(parseErrorMessage(raw));
+				}
+
+				setFormMessage('User created successfully.', 'success');
+				document.getElementById('create-user-form')?.reset();
+				window.dispatchEvent(new CustomEvent('eventide:users:refresh'));
+				closeCreateModal();
+			} catch (err) {
+				setFormMessage(err.message || 'Could not create user.', 'error');
+			} finally {
+				if (btn) btn.disabled = false;
+			}
+		});
+	}
+
+	async function loadSessionRole() {
+		try {
+			const res = await fetch('/api/session');
+			if (!res.ok) return;
+			const payload = await res.json();
+			currentRole = String(payload.role || '').trim().toLowerCase();
+		} catch {
+			currentRole = '';
+		}
+
+		if (openCreateUserBtn) {
+			const isAdmin = currentRole === 'admin';
+			openCreateUserBtn.hidden = !isAdmin;
+			if (isAdmin) {
+				ensureCreateUserModal();
+				openCreateUserBtn.addEventListener('click', () => {
+					setFormMessage('');
+					openCreateModal();
+				});
+			}
+		}
+	}
 
 	function normalizeUser(user) {
 		return {
@@ -129,7 +313,7 @@
 
 	function init() {
 		bindEvents();
-		loadUsers().catch((err) => {
+		Promise.all([loadSessionRole(), loadUsers()]).catch((err) => {
 			if (list) list.innerHTML = `<p class="loading">Error loading users: ${err.message}</p>`;
 			updateStats([], []);
 		});
