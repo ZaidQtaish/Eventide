@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"eventide-app/handlers"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
