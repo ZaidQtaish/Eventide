@@ -79,7 +79,16 @@
     <script src="../shared/sidebar.js"></script>
     <script src="create-event-modal.js"></script>
     <script src="events.js"></script>
-    <script src="create-event.js"></script>
+    <script>
+        (() => {
+            if (!window.EventideCreateEventModal || typeof window.EventideCreateEventModal.mount !== 'function') {
+                return;
+            }
+            window.EventideCreateEventModal.mount({
+                openButtonSelector: '#open-create-event-modal',
+            });
+        })();
+    </script>
 </body>
 
 </html>
