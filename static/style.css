@@ -904,6 +904,11 @@ body.modal-open {
     color: var(--text-secondary);
 }
 
+.user-contact {
+    font-size: 12px;
+    color: var(--text-light);
+}
+
 .user-meta {
     display: flex;
     align-items: center;

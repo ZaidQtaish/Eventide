@@ -528,7 +528,7 @@ func GetUsersHandler(w http.ResponseWriter, r *http.Request) {
 
 	ctx := context.Background()
 
-	rows, err := db.Query(ctx, "SELECT id, username, name, role FROM users ORDER BY username")
+	rows, err := db.Query(ctx, "SELECT id, username, name, role, COALESCE(phone_number, '') FROM users ORDER BY username")
 	if err != nil {
 		http.Error(w, "Query failed", http.StatusInternalServerError)
 		return
@@ -538,7 +538,7 @@ func GetUsersHandler(w http.ResponseWriter, r *http.Request) {
 	var users []User
 	for rows.Next() {
 		var u User
-		if err := rows.Scan(&u.ID, &u.Username, &u.Name, &u.Role); err != nil {
+		if err := rows.Scan(&u.ID, &u.Username, &u.Name, &u.Role, &u.PhoneNumber); err != nil {
 			continue
 		}
 		users = append(users, u)
@@ -620,13 +620,13 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = db.QueryRow(
 		ctx,
-		"INSERT INTO users (username, password_hash, name, role, phone_number) VALUES ($1, $2, $3, $4, NULLIF($5, '')) RETURNING id, username, name, role",
+		"INSERT INTO users (username, password_hash, name, role, phone_number) VALUES ($1, $2, $3, $4, NULLIF($5, '')) RETURNING id, username, name, role, COALESCE(phone_number, '')",
 		username,
 		string(hashedPassword),
 		name,
 		role,
 		strings.TrimSpace(req.PhoneNumber),
-	).Scan(&createdUser.ID, &createdUser.Username, &createdUser.Name, &createdUser.Role)
+	).Scan(&createdUser.ID, &createdUser.Username, &createdUser.Name, &createdUser.Role, &createdUser.PhoneNumber)
 
 	if err != nil {
 		if strings.Contains(strings.ToLower(err.Error()), "duplicate") {
@@ -715,14 +715,14 @@ func UpdateUserHandler(w http.ResponseWriter, r *http.Request, userID int) {
 
 		err = db.QueryRow(
 			ctx,
-			"UPDATE users SET username = $1, name = $2, role = $3, phone_number = NULLIF($4, ''), password_hash = $5 WHERE id = $6 RETURNING id, username, name, role",
+			"UPDATE users SET username = $1, name = $2, role = $3, phone_number = NULLIF($4, ''), password_hash = $5 WHERE id = $6 RETURNING id, username, name, role, COALESCE(phone_number, '')",
 			username,
 			name,
 			role,
 			phone,
 			string(hashedPassword),
 			userID,
-		).Scan(&updatedUser.ID, &updatedUser.Username, &updatedUser.Name, &updatedUser.Role)
+		).Scan(&updatedUser.ID, &updatedUser.Username, &updatedUser.Name, &updatedUser.Role, &updatedUser.PhoneNumber)
 		if err != nil {
 			if err == pgx.ErrNoRows {
 				http.Error(w, "user not found", http.StatusNotFound)
@@ -738,13 +738,13 @@ func UpdateUserHandler(w http.ResponseWriter, r *http.Request, userID int) {
 	} else {
 		err := db.QueryRow(
 			ctx,
-			"UPDATE users SET username = $1, name = $2, role = $3, phone_number = NULLIF($4, '') WHERE id = $5 RETURNING id, username, name, role",
+			"UPDATE users SET username = $1, name = $2, role = $3, phone_number = NULLIF($4, '') WHERE id = $5 RETURNING id, username, name, role, COALESCE(phone_number, '')",
 			username,
 			name,
 			role,
 			phone,
 			userID,
-		).Scan(&updatedUser.ID, &updatedUser.Username, &updatedUser.Name, &updatedUser.Role)
+		).Scan(&updatedUser.ID, &updatedUser.Username, &updatedUser.Name, &updatedUser.Role, &updatedUser.PhoneNumber)
 		if err != nil {
 			if err == pgx.ErrNoRows {
 				http.Error(w, "user not found", http.StatusNotFound)

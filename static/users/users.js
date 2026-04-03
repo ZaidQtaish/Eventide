@@ -49,6 +49,7 @@
 			username: String(user.username ?? user.Username ?? '').trim(),
 			name: String(user.name ?? user.Name ?? '').trim(),
 			role: String(user.role ?? user.Role ?? 'staff').trim().toLowerCase(),
+			phone_number: String(user.phone_number ?? user.PhoneNumber ?? '').trim(),
 		};
 	}
 
@@ -78,7 +79,7 @@
 
 		if (!query) return true;
 
-		const haystack = [user.username, user.name, user.role]
+		const haystack = [user.username, user.name, user.role, user.phone_number]
 			.map((v) => String(v || '').toLowerCase())
 			.join(' ');
 
@@ -110,6 +111,7 @@
 			card.className = 'user-card';
 			const roleClass = user.role === 'admin' ? 'admin' : 'staff';
 			const roleLabel = user.role || 'staff';
+			const phoneLabel = user.phone_number || 'No phone on file';
 			const editButton = isAdminUser
 				? `<button class="cta-btn ghost item-edit-btn user-edit-btn" type="button" data-user-id="${user.id}">Edit</button>`
 				: '';
@@ -120,6 +122,7 @@
 					<div class="user-title">
 						<div class="user-name">${user.name || 'Unnamed user'}</div>
 						<div class="user-username">@${user.username || 'unknown'}</div>
+						<div class="user-contact">${phoneLabel}</div>
 					</div>
 				</div>
 				<div class="user-meta">

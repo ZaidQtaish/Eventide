@@ -105,10 +105,11 @@ type eventPlan struct {
 }
 
 type User struct {
-	ID       int    `json:"id"`
-	Username string `json:"username"`
-	Name     string `json:"name"`
-	Role     string `json:"role"`
+	ID          int    `json:"id"`
+	Username    string `json:"username"`
+	Name        string `json:"name"`
+	Role        string `json:"role"`
+	PhoneNumber string `json:"phone_number"`
 }
 type Warehouse struct {
 	Code   string `json:"code"`
