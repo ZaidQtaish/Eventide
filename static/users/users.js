@@ -11,6 +11,8 @@
 	const shownCountEl = document.getElementById('users-shown-count');
 
 	let cachedUsers = [];
+	let isAdminUser = false;
+	let userModalApi = null;
 
 	async function loadSessionRole() {
 		let currentRole = '';
@@ -24,15 +26,19 @@
 		}
 
 		if (openCreateUserBtn) {
-			const isAdmin = currentRole === 'admin';
-			openCreateUserBtn.hidden = !isAdmin;
-			if (isAdmin) {
-				window.EventideCreateUserModal?.mount({
+			isAdminUser = currentRole === 'admin';
+			openCreateUserBtn.hidden = !isAdminUser;
+			if (isAdminUser) {
+				userModalApi = window.EventideCreateUserModal?.mount({
 					openButtonSelector: '#open-create-user-modal',
+					getUserByID: (userID) => {
+						const normalized = cachedUsers.map(normalizeUser);
+						return normalized.find((u) => Number(u.id) === Number(userID)) || null;
+					},
 					onSuccess: () => {
 						window.dispatchEvent(new CustomEvent('eventide:users:refresh'));
 					},
-				});
+				}) || null;
 			}
 		}
 	}
@@ -104,6 +110,9 @@
 			card.className = 'user-card';
 			const roleClass = user.role === 'admin' ? 'admin' : 'staff';
 			const roleLabel = user.role || 'staff';
+			const editButton = isAdminUser
+				? `<button class="cta-btn ghost item-edit-btn user-edit-btn" type="button" data-user-id="${user.id}">Edit</button>`
+				: '';
 
 			card.innerHTML = `
 				<div class="user-head">
@@ -115,6 +124,7 @@
 				</div>
 				<div class="user-meta">
 					<span class="role-pill ${roleClass}">${roleLabel}</span>
+					${editButton}
 				</div>
 			`;
 
@@ -144,6 +154,18 @@
 			if (roleFilter) roleFilter.value = '';
 			if (searchFilter) searchFilter.value = '';
 			render(cachedUsers);
+		});
+
+		list?.addEventListener('click', (event) => {
+			const target = event.target;
+			if (!(target instanceof HTMLElement)) return;
+			const button = target.closest('.user-edit-btn');
+			if (!(button instanceof HTMLElement)) return;
+
+			const userID = Number.parseInt(button.dataset.userId || '', 10);
+			if (!Number.isFinite(userID)) return;
+
+			userModalApi?.openEditUserModal(userID);
 		});
 
 		window.addEventListener('eventide:users:refresh', () => {

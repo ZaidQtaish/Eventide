@@ -50,7 +50,7 @@
     }
 
     function parseErrorMessage(raw) {
-        if (!raw) return 'Failed to create user.';
+        if (!raw) return 'Request failed.';
         try {
             const parsed = JSON.parse(raw);
             return parsed.error || parsed.message || raw;
@@ -73,6 +73,14 @@
         const form = document.getElementById('create-user-form');
         const submitBtn = document.getElementById('create-user-btn');
         const messageEl = document.getElementById('create-user-message');
+        const titleEl = document.getElementById('create-user-title');
+        const nameInput = document.getElementById('new-user-name');
+        const usernameInput = document.getElementById('new-user-username');
+        const passwordInput = document.getElementById('new-user-password');
+        const roleInput = document.getElementById('new-user-role');
+        const phoneInput = document.getElementById('new-user-phone');
+
+        let editingUserID = null;
 
         function setFormMessage(msg, kind = '') {
             if (!messageEl) return;
@@ -87,7 +95,7 @@
             modal.setAttribute('aria-hidden', 'false');
             document.body.classList.add('modal-open');
             setTimeout(() => {
-                document.getElementById('new-user-name')?.focus();
+                nameInput?.focus();
             }, 0);
         }
 
@@ -98,39 +106,90 @@
             document.body.classList.remove('modal-open');
         }
 
-        async function onSubmit(e) {
-            e.preventDefault();
+        function openCreateUserModal() {
+            editingUserID = null;
+            if (titleEl) titleEl.textContent = 'Create User';
+            if (submitBtn) submitBtn.textContent = 'Create User';
+            if (passwordInput) {
+                passwordInput.required = true;
+                passwordInput.placeholder = 'Minimum 6 chars';
+            }
 
-            const name = String(document.getElementById('new-user-name')?.value || '').trim();
-            const username = String(document.getElementById('new-user-username')?.value || '').trim();
-            const password = String(document.getElementById('new-user-password')?.value || '').trim();
-            const role = String(document.getElementById('new-user-role')?.value || '').trim().toLowerCase();
-            const phone = String(document.getElementById('new-user-phone')?.value || '').trim();
+            form?.reset();
+            setFormMessage('');
+            openModal();
+        }
 
-            if (!name || !username || !password || !role) {
-                setFormMessage('All required fields must be filled.', 'error');
+        function openEditUserModal(userID) {
+            const getUserByID = typeof config.getUserByID === 'function' ? config.getUserByID : null;
+            const user = getUserByID ? getUserByID(userID) : null;
+            if (!user) {
+                setFormMessage('User not found for editing.', 'error');
                 return;
             }
 
-            if (password.length < 6) {
+            editingUserID = Number(userID);
+            if (titleEl) titleEl.textContent = 'Edit User';
+            if (submitBtn) submitBtn.textContent = 'Save Changes';
+
+            if (nameInput) nameInput.value = user.name || '';
+            if (usernameInput) usernameInput.value = user.username || '';
+            if (roleInput) roleInput.value = user.role || 'staff';
+            if (phoneInput) phoneInput.value = user.phone_number || '';
+            if (passwordInput) {
+                passwordInput.value = '';
+                passwordInput.required = false;
+                passwordInput.placeholder = 'Leave blank to keep existing password';
+            }
+
+            setFormMessage('');
+            openModal();
+        }
+
+        async function onSubmit(e) {
+            e.preventDefault();
+
+            const name = String(nameInput?.value || '').trim();
+            const username = String(usernameInput?.value || '').trim();
+            const password = String(passwordInput?.value || '').trim();
+            const role = String(roleInput?.value || '').trim().toLowerCase();
+            const phone = String(phoneInput?.value || '').trim();
+            const isEditMode = Number.isFinite(editingUserID) && editingUserID > 0;
+
+            if (!name || !username || !role) {
+                setFormMessage('Name, username, and role are required.', 'error');
+                return;
+            }
+
+            if (!isEditMode && password.length < 6) {
+                setFormMessage('Password must be at least 6 characters.', 'error');
+                return;
+            }
+
+            if (isEditMode && password && password.length < 6) {
                 setFormMessage('Password must be at least 6 characters.', 'error');
                 return;
             }
 
             if (submitBtn) submitBtn.disabled = true;
-            setFormMessage('Creating user...');
+            setFormMessage(isEditMode ? 'Saving changes...' : 'Creating user...');
+
+            const payload = {
+                name,
+                username,
+                role,
+                phone_number: phone,
+            };
+
+            if (!isEditMode || password) {
+                payload.password = password;
+            }
 
             try {
-                const res = await fetch('/api/users', {
-                    method: 'POST',
+                const res = await fetch(isEditMode ? `/api/users/${editingUserID}` : '/api/users', {
+                    method: isEditMode ? 'PUT' : 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        name,
-                        username,
-                        password,
-                        role,
-                        phone_number: phone,
-                    }),
+                    body: JSON.stringify(payload),
                 });
 
                 if (!res.ok) {
@@ -138,7 +197,7 @@
                     throw new Error(parseErrorMessage(raw));
                 }
 
-                setFormMessage('User created successfully.', 'success');
+                setFormMessage(isEditMode ? 'User updated successfully.' : 'User created successfully.', 'success');
                 form?.reset();
 
                 if (typeof config.onSuccess === 'function') {
@@ -153,10 +212,7 @@
             }
         }
 
-        openModalBtn.addEventListener('click', () => {
-            setFormMessage('');
-            openModal();
-        });
+        openModalBtn.addEventListener('click', openCreateUserModal);
 
         closeModalBtn?.addEventListener('click', closeModal);
 
@@ -175,7 +231,11 @@
 
         form?.addEventListener('submit', onSubmit);
 
-        return { openModal, closeModal };
+        return {
+            openCreateUserModal,
+            openEditUserModal,
+            closeModal,
+        };
     }
 
     window.EventideCreateUserModal = {
