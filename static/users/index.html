@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Eventide | Users</title>
+	<link rel="stylesheet" href="../style.css" />
+</head>
+
+<body>
+	<div id="sidebar-root"></div>
+
+	<main class="page-content">
+		<section class="dashboard-section">
+			<div class="container">
+				<div class="dashboard-header">
+					<div>
+						<h2>Users</h2>
+						<p class="section-subtitle">Team access, roles, and account visibility</p>
+					</div>
+				</div>
+
+				<div class="cards-grid">
+					<div class="stat-card">
+						<div class="stat-label">Total Users</div>
+						<div class="stat-value" id="users-total-count">--</div>
+					</div>
+					<div class="stat-card">
+						<div class="stat-label">Admins</div>
+						<div class="stat-value" id="users-admin-count">--</div>
+					</div>
+					<div class="stat-card">
+						<div class="stat-label">Staff</div>
+						<div class="stat-value" id="users-staff-count">--</div>
+					</div>
+					<div class="stat-card">
+						<div class="stat-label">Shown</div>
+						<div class="stat-value" id="users-shown-count">--</div>
+					</div>
+				</div>
+
+				<div class="panel">
+					<div class="panel-header">
+						<h3>Filtering</h3>
+					</div>
+					<div class="filter-row filters-with-clear">
+						<select id="users-role-filter" class="form-control">
+							<option value="">All roles</option>
+							<option value="admin">Admin</option>
+							<option value="staff">Staff</option>
+						</select>
+						<input id="users-search-filter" class="form-control" type="search" placeholder="Search by username or name" />
+						<div class="filters-clear">
+							<button id="users-clear-filter" class="cta-btn ghost" type="button">Clear</button>
+						</div>
+					</div>
+				</div>
+
+				<div class="panel" style="margin-bottom: 20px;">
+					<div class="panel-header">
+						<h3>Team Directory</h3>
+						<span class="pill">Access</span>
+					</div>
+
+					<div id="users-list" class="users-grid">
+						<p class="loading">Loading users...</p>
+					</div>
+				</div>
+			</div>
+		</section>
+	</main>
+
+	<footer class="footer">
+		<div class="container">
+			<p>&copy; 2026 Eventide. All rights reserved.</p>
+		</div>
+	</footer>
+
+	<script src="../shared/sidebar.js"></script>
+	<script src="users.js"></script>
+</body>
+
+</html>

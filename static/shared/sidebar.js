@@ -1,5 +1,6 @@
 (() => {
     function getActiveSection(pathname) {
+        if (pathname.startsWith('/app/users/')) return 'users';
         if (pathname.startsWith('/app/items/')) return 'items';
         if (pathname.startsWith('/app/inventory/')) return 'inventory';
         if (pathname.startsWith('/app/warehouses/')) return 'warehouses';
@@ -14,6 +15,7 @@
             ? `
                     <div class="sidebar-separator" role="separator" aria-label="Admin section">Admin</div>
                     <a class="sidebar-link ${active === 'items' ? 'active' : ''}" href="/app/items/">Items</a>
+                    <a class="sidebar-link ${active === 'users' ? 'active' : ''}" href="/app/users/">Users</a>
                 `
             : '';
 
