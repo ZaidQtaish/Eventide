@@ -19,6 +19,7 @@ func main() {
 	http.HandleFunc("/api/inventory", RequireAuth(GetInventoryHandler))
 	http.HandleFunc("/api/events", RequireAuth(EventsHandler))
 	http.HandleFunc("/api/daily-statements", RequireAuth(GetDailyStatementsHandler))
+	http.HandleFunc("/api/session", RequireAuth(GetSessionInfoHandler))
 	http.HandleFunc("/api/login", LoginHandler)
 	http.HandleFunc("/logout", LogoutHandler)
 	http.HandleFunc("/api/users", RequireAuth(GetUsersHandler))

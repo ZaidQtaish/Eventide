@@ -8,17 +8,25 @@
         return 'dashboard';
     }
 
-    function buildSidebar(active) {
+    function buildSidebar(active, role) {
+        const isAdmin = String(role || '').toLowerCase() === 'admin';
+        const adminSection = isAdmin
+            ? `
+                    <div class="sidebar-separator" role="separator" aria-label="Admin section">Admin</div>
+                    <a class="sidebar-link ${active === 'items' ? 'active' : ''}" href="/app/items/">Items</a>
+                `
+            : '';
+
         return `
             <aside class="app-sidebar" aria-label="Primary">
                 <a href="/app/" class="sidebar-logo">Eventide</a>
                 <nav class="sidebar-nav">
                     <a class="sidebar-link ${active === 'dashboard' ? 'active' : ''}" href="/app/">Dashboard</a>
                     <a class="sidebar-link ${active === 'inventory' ? 'active' : ''}" href="/app/inventory/">Inventory</a>
-                    <a class="sidebar-link ${active === 'items' ? 'active' : ''}" href="/app/items/">Items</a>
                     <a class="sidebar-link ${active === 'warehouses' ? 'active' : ''}" href="/app/warehouses/">Warehouses</a>
                     <a class="sidebar-link ${active === 'daily-history' ? 'active' : ''}" href="/app/daily-history/">Daily History</a>
                     <a class="sidebar-link ${active === 'events' ? 'active' : ''}" href="/app/events/">Events</a>
+                    ${adminSection}
                 </nav>
                 <div class="sidebar-footer">
                     <a class="sidebar-link sidebar-link-logout" href="/logout">Logout</a>
@@ -27,12 +35,24 @@
         `;
     }
 
-    function initSidebar() {
+    async function fetchSessionRole() {
+        try {
+            const res = await fetch('/api/session');
+            if (!res.ok) return '';
+            const payload = await res.json();
+            return String(payload.role || '');
+        } catch (_) {
+            return '';
+        }
+    }
+
+    async function initSidebar() {
         const root = document.getElementById('sidebar-root');
         if (!root) return;
 
         const active = getActiveSection(window.location.pathname || '/');
-        root.innerHTML = buildSidebar(active);
+        const role = await fetchSessionRole();
+        root.innerHTML = buildSidebar(active, role);
         document.body.classList.add('has-sidebar');
     }
 
