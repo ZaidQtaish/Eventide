@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/jackc/pgx/v5"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // ItemsHandler routes GET/POST for /items
@@ -559,3 +560,82 @@ func GetWarehousesHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(warehouses)
 }
+
+
+func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
+	// Check if user is admin
+	userRole := GetSessionRole(r)
+	if userRole != "admin" {
+		w.Header().Set("Content-Type", "application/json")
+		http.Error(w, "Only admins can create users", http.StatusForbidden)
+		return
+	}
+
+	var req CreateUserRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	// Validate input
+	username := strings.TrimSpace(req.Username)
+	password := strings.TrimSpace(req.Password)
+	name := strings.TrimSpace(req.Name)
+	role := strings.TrimSpace(req.Role)
+
+	if username == "" || password == "" || name == "" || role == "" {
+		http.Error(w, "Missing required fields: username, password, name, role", http.StatusBadRequest)
+		return
+	}
+
+	if len(password) < 6 {
+		http.Error(w, "Password must be at least 6 characters", http.StatusBadRequest)
+		return
+	}
+
+	// Hash password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		http.Error(w, "Password hashing failed", http.StatusInternalServerError)
+		return
+	}
+
+	// Insert into database
+	ctx := r.Context()
+	var createdUser User
+
+	err = db.QueryRow(
+		ctx,
+		"INSERT INTO users (username, password_hash, name, role, phone_number) VALUES ($1, $2, $3, $4, NULLIF($5, '')) RETURNING id, username, name, role",
+		username,
+		string(hashedPassword),
+		name,
+		role,
+		strings.TrimSpace(req.PhoneNumber),
+	).Scan(&createdUser.ID, &createdUser.Username, &createdUser.Name, &createdUser.Role)
+
+	if err != nil {
+		if strings.Contains(strings.ToLower(err.Error()), "duplicate") {
+			http.Error(w, "Username already exists", http.StatusConflict)
+			return
+		}
+		http.Error(w, "Failed to create user", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(createdUser)
+}
+
+func UsersHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		GetUsersHandler(w, r)
+	case http.MethodPost:
+		CreateUserHandler(w, r)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+ 

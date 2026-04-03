@@ -73,6 +73,14 @@ type CreateItemRequest struct {
 	SupplierID   *int   `json:"supplier_id"`
 }
 
+type CreateUserRequest struct {
+	Username    string `json:"username"`
+	Password    string `json:"password"`
+	Name        string `json:"name"`
+	Role        string `json:"role"`
+	PhoneNumber string `json:"phone_number"`
+}
+
 type session struct {
 	Username  string
 	ExpiresAt time.Time
