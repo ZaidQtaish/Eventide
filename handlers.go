@@ -23,6 +23,7 @@ func ItemsHandler(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPut:
 			UpdateItemHandler(w, r, id)
+			return
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
@@ -561,7 +562,6 @@ func GetWarehousesHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(warehouses)
 }
 
-
 func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	// Check if user is admin
 	userRole := GetSessionRole(r)
@@ -638,4 +638,3 @@ func UsersHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
 }
- 

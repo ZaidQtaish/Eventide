@@ -22,7 +22,7 @@ func main() {
 	http.HandleFunc("/api/session", RequireAuth(GetSessionInfoHandler))
 	http.HandleFunc("/api/login", LoginHandler)
 	http.HandleFunc("/logout", LogoutHandler)
-	http.HandleFunc("/api/users", RequireAuth(GetUsersHandler))
+	http.HandleFunc("/api/users", RequireAuth(UsersHandler))
 	http.HandleFunc("/api/warehouses", RequireAuth(GetWarehousesHandler))
 	http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("./public"))))
 	http.Handle("/style.css", http.FileServer(http.Dir("./static")))
