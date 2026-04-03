@@ -34,8 +34,8 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="new-user-phone">Phone (optional)</label>
-                            <input id="new-user-phone" class="form-control" type="text" placeholder="+1 555 123 4567" />
+                            <label for="new-user-phone">Phone</label>
+                            <input id="new-user-phone" class="form-control" type="text" required placeholder="+1 555 123 4567" />
                         </div>
 
                         <div class="event-form-actions">
@@ -114,6 +114,9 @@
                 passwordInput.required = true;
                 passwordInput.placeholder = 'Minimum 6 chars';
             }
+            if (phoneInput) {
+                phoneInput.required = true;
+            }
 
             form?.reset();
             setFormMessage('');
@@ -156,8 +159,8 @@
             const phone = String(phoneInput?.value || '').trim();
             const isEditMode = Number.isFinite(editingUserID) && editingUserID > 0;
 
-            if (!name || !username || !role) {
-                setFormMessage('Name, username, and role are required.', 'error');
+            if (!name || !username || !role || !phone) {
+                setFormMessage('Name, username, role, and phone are required.', 'error');
                 return;
             }
 

@@ -596,9 +596,10 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	password := strings.TrimSpace(req.Password)
 	name := strings.TrimSpace(req.Name)
 	role := strings.TrimSpace(req.Role)
+	phone := strings.TrimSpace(req.PhoneNumber)
 
-	if username == "" || password == "" || name == "" || role == "" {
-		http.Error(w, "Missing required fields: username, password, name, role", http.StatusBadRequest)
+	if username == "" || password == "" || name == "" || role == "" || phone == "" {
+		http.Error(w, "Missing required fields: username, password, name, role, phone_number", http.StatusBadRequest)
 		return
 	}
 
@@ -620,12 +621,12 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = db.QueryRow(
 		ctx,
-		"INSERT INTO users (username, password_hash, name, role, phone_number) VALUES ($1, $2, $3, $4, NULLIF($5, '')) RETURNING id, username, name, role, COALESCE(phone_number, '')",
+		"INSERT INTO users (username, password_hash, name, role, phone_number) VALUES ($1, $2, $3, $4, $5) RETURNING id, username, name, role, COALESCE(phone_number, '')",
 		username,
 		string(hashedPassword),
 		name,
 		role,
-		strings.TrimSpace(req.PhoneNumber),
+		phone,
 	).Scan(&createdUser.ID, &createdUser.Username, &createdUser.Name, &createdUser.Role, &createdUser.PhoneNumber)
 
 	if err != nil {
@@ -694,7 +695,12 @@ func UpdateUserHandler(w http.ResponseWriter, r *http.Request, userID int) {
 	password := strings.TrimSpace(req.Password)
 
 	if username == "" || name == "" || role == "" {
-		http.Error(w, "Missing required fields: username, name, role", http.StatusBadRequest)
+		http.Error(w, "Missing required fields: username, name, role, phone_number", http.StatusBadRequest)
+		return
+	}
+
+	if phone == "" {
+		http.Error(w, "phone_number is required", http.StatusBadRequest)
 		return
 	}
 
@@ -715,7 +721,7 @@ func UpdateUserHandler(w http.ResponseWriter, r *http.Request, userID int) {
 
 		err = db.QueryRow(
 			ctx,
-			"UPDATE users SET username = $1, name = $2, role = $3, phone_number = NULLIF($4, ''), password_hash = $5 WHERE id = $6 RETURNING id, username, name, role, COALESCE(phone_number, '')",
+			"UPDATE users SET username = $1, name = $2, role = $3, phone_number = $4, password_hash = $5 WHERE id = $6 RETURNING id, username, name, role, COALESCE(phone_number, '')",
 			username,
 			name,
 			role,
@@ -738,7 +744,7 @@ func UpdateUserHandler(w http.ResponseWriter, r *http.Request, userID int) {
 	} else {
 		err := db.QueryRow(
 			ctx,
-			"UPDATE users SET username = $1, name = $2, role = $3, phone_number = NULLIF($4, '') WHERE id = $5 RETURNING id, username, name, role, COALESCE(phone_number, '')",
+			"UPDATE users SET username = $1, name = $2, role = $3, phone_number = $4 WHERE id = $5 RETURNING id, username, name, role, COALESCE(phone_number, '')",
 			username,
 			name,
 			role,
