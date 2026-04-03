@@ -54,6 +54,20 @@ func parseItemIDFromPath(path string) (int, error) {
 	return strconv.Atoi(itemIDPart)
 }
 
+func parseUserIDFromPath(path string) (int, error) {
+	const prefix = "/api/users/"
+	if !strings.HasPrefix(path, prefix) {
+		return 0, strconv.ErrSyntax
+	}
+
+	userIDPart := strings.Trim(strings.TrimPrefix(path, prefix), "/")
+	if userIDPart == "" || strings.Contains(userIDPart, "/") {
+		return 0, strconv.ErrSyntax
+	}
+
+	return strconv.Atoi(userIDPart)
+}
+
 // EventsHandler routes GET/POST for /events
 func EventsHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
@@ -629,6 +643,22 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func UsersHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/api/users" {
+		id, err := parseUserIDFromPath(r.URL.Path)
+		if err != nil {
+			http.Error(w, "Invalid user id", http.StatusBadRequest)
+			return
+		}
+
+		switch r.Method {
+		case http.MethodPut:
+			UpdateUserHandler(w, r, id)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+		return
+	}
+
 	switch r.Method {
 	case http.MethodGet:
 		GetUsersHandler(w, r)
@@ -637,4 +667,98 @@ func UsersHandler(w http.ResponseWriter, r *http.Request) {
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
+}
+
+func UpdateUserHandler(w http.ResponseWriter, r *http.Request, userID int) {
+	if userID <= 0 {
+		http.Error(w, "Invalid user id", http.StatusBadRequest)
+		return
+	}
+
+	if GetSessionRole(r) != "admin" {
+		w.Header().Set("Content-Type", "application/json")
+		http.Error(w, "Only admins can update users", http.StatusForbidden)
+		return
+	}
+
+	var req CreateUserRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	username := strings.TrimSpace(req.Username)
+	name := strings.TrimSpace(req.Name)
+	role := strings.TrimSpace(req.Role)
+	phone := strings.TrimSpace(req.PhoneNumber)
+	password := strings.TrimSpace(req.Password)
+
+	if username == "" || name == "" || role == "" {
+		http.Error(w, "Missing required fields: username, name, role", http.StatusBadRequest)
+		return
+	}
+
+	if password != "" && len(password) < 6 {
+		http.Error(w, "Password must be at least 6 characters", http.StatusBadRequest)
+		return
+	}
+
+	ctx := r.Context()
+	var updatedUser User
+
+	if password != "" {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		if err != nil {
+			http.Error(w, "Password hashing failed", http.StatusInternalServerError)
+			return
+		}
+
+		err = db.QueryRow(
+			ctx,
+			"UPDATE users SET username = $1, name = $2, role = $3, phone_number = NULLIF($4, ''), password_hash = $5 WHERE id = $6 RETURNING id, username, name, role",
+			username,
+			name,
+			role,
+			phone,
+			string(hashedPassword),
+			userID,
+		).Scan(&updatedUser.ID, &updatedUser.Username, &updatedUser.Name, &updatedUser.Role)
+		if err != nil {
+			if err == pgx.ErrNoRows {
+				http.Error(w, "user not found", http.StatusNotFound)
+				return
+			}
+			if strings.Contains(strings.ToLower(err.Error()), "duplicate") {
+				http.Error(w, "Username already exists", http.StatusConflict)
+				return
+			}
+			http.Error(w, "Failed to update user", http.StatusInternalServerError)
+			return
+		}
+	} else {
+		err := db.QueryRow(
+			ctx,
+			"UPDATE users SET username = $1, name = $2, role = $3, phone_number = NULLIF($4, '') WHERE id = $5 RETURNING id, username, name, role",
+			username,
+			name,
+			role,
+			phone,
+			userID,
+		).Scan(&updatedUser.ID, &updatedUser.Username, &updatedUser.Name, &updatedUser.Role)
+		if err != nil {
+			if err == pgx.ErrNoRows {
+				http.Error(w, "user not found", http.StatusNotFound)
+				return
+			}
+			if strings.Contains(strings.ToLower(err.Error()), "duplicate") {
+				http.Error(w, "Username already exists", http.StatusConflict)
+				return
+			}
+			http.Error(w, "Failed to update user", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(updatedUser)
 }
