@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	"eventide-app/handlers"
 )
 
 func main() {
@@ -14,18 +16,22 @@ func main() {
 	}
 	defer CloseDB()
 
-	http.HandleFunc("/api/items", RequireAuth(ItemsHandler))
-	http.HandleFunc("/api/items/", RequireAuth(ItemsHandler))
-	http.HandleFunc("/api/inventory", RequireAuth(GetInventoryHandler))
-	http.HandleFunc("/api/events", RequireAuth(EventsHandler))
-	http.HandleFunc("/api/daily-statements", RequireAuth(GetDailyStatementsHandler))
-	http.HandleFunc("/api/session", RequireAuth(GetSessionInfoHandler))
+	// Create handlers app with injected dependencies
+	app := handlers.NewApp(db, GetSessionUser, GetSessionRole)
+
+	// Register handlers
+	http.HandleFunc("/api/items", RequireAuth(app.ItemsHandler))
+	http.HandleFunc("/api/items/", RequireAuth(app.ItemsHandler))
+	http.HandleFunc("/api/inventory", RequireAuth(app.GetInventoryHandler))
+	http.HandleFunc("/api/events", RequireAuth(app.EventsHandler))
+	http.HandleFunc("/api/daily-statements", RequireAuth(app.GetDailyStatementsHandler))
+	http.HandleFunc("/api/session", RequireAuth(app.GetSessionInfoHandler))
 	http.HandleFunc("/api/login", LoginHandler)
 	http.HandleFunc("/logout", LogoutHandler)
-	http.HandleFunc("/api/users", RequireAuth(UsersHandler))
-	http.HandleFunc("/api/users/", RequireAuth(UsersHandler))
-	http.HandleFunc("/api/warehouses", RequireAuth(WarehousesHandler))
-	http.HandleFunc("/api/warehouses/", RequireAuth(WarehousesHandler))
+	http.HandleFunc("/api/users", RequireAuth(app.UsersHandler))
+	http.HandleFunc("/api/users/", RequireAuth(app.UsersHandler))
+	http.HandleFunc("/api/warehouses", RequireAuth(app.WarehousesHandler))
+	http.HandleFunc("/api/warehouses/", RequireAuth(app.WarehousesHandler))
 	http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("./public"))))
 	http.Handle("/style.css", http.FileServer(http.Dir("./static")))
 
