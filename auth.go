@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"eventide-app/handlers"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -44,7 +45,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var loginReq LoginRequest
+	var loginReq handlers.LoginRequest
 	err := json.NewDecoder(r.Body).Decode(&loginReq)
 	if err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
