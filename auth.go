@@ -17,6 +17,12 @@ import (
 const sessionCookieName = "session_token"
 const sessionDuration = 12 * time.Hour
 
+type session struct {
+	Username  string
+	Role      string
+	ExpiresAt time.Time
+}
+
 var (
 	sessionStore = make(map[string]session)
 	sessionMu    sync.RWMutex
