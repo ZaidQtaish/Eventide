@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -97,9 +98,12 @@ func calculateMovingAverages(statements []DailyStatement, window int) []MovingAv
 		var avgOut float64
 		var avgNet float64
 		if count > 0 {
-			avgIn = float64(sumIn) / float64(count)
-			avgOut = float64(sumOut) / float64(count)
-			avgNet = avgIn - avgOut
+			rawAvgIn := float64(sumIn) / float64(count)
+			rawAvgOut := float64(sumOut) / float64(count)
+
+			avgIn = math.Floor(rawAvgIn)
+			avgOut = math.Ceil(rawAvgOut)
+			avgNet = math.Round(rawAvgIn - rawAvgOut)
 		}
 
 		forecasts = append(forecasts, MovingAverage{
