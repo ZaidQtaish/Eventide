@@ -17,7 +17,7 @@
                 <div class="dashboard-header">
                     <div>
                         <h2>Forecast</h2>
-                        <p class="section-subtitle">Tomorrow forecast based on moving-average inbound and outbound inventory flow</p>
+                        <p class="section-subtitle">Tomorrow's forecast based on moving-average inbound and outbound inventory flow</p>
                     </div>
                 </div>
 
@@ -62,7 +62,10 @@
                 <div class="panel" style="margin-bottom: 20px;">
                     <div class="panel-header">
                         <h3>Forecast Results</h3>
-                        <span class="pill" id="window-pill">Tomorrow • Window 7 days</span>
+                        <div class="panel-header-badges">
+                            <span class="pill" id="forecast-for-pill">Tomorrow</span>
+                            <span class="pill" id="window-pill">Window 7 days</span>
+                        </div>
                     </div>
                     <div id="forecast-meta" class="daily-history-context" hidden></div>
                     <div class="forecast-table-wrap">

@@ -5,6 +5,7 @@
     const applyBtn = document.getElementById('apply-forecast-filter');
     const clearBtn = document.getElementById('clear-forecast-filter');
     const tableBody = document.getElementById('forecast-table-body');
+    const forecastForPill = document.getElementById('forecast-for-pill');
     const windowPill = document.getElementById('window-pill');
     const meta = document.getElementById('forecast-meta');
 
@@ -70,8 +71,8 @@
         }).join('');
     }
 
-    function setMeta(selectedItem, selectedWarehouse, forecastFor) {
-        const parts = [`Forecast for: ${forecastFor}`];
+    function setMeta(selectedItem, selectedWarehouse) {
+        const parts = [];
         if (selectedItem) {
             const itemData = itemsById.get(Number(selectedItem));
             const label = itemData ? `${itemData.name} (${itemData.sku || 'SKU N/A'})` : `Item #${selectedItem}`;
@@ -81,8 +82,14 @@
             parts.push(`Warehouse: ${selectedWarehouse}`);
         }
 
+        if (!parts.length) {
+            meta.hidden = true;
+            meta.innerHTML = '';
+            return;
+        }
+
         meta.hidden = false;
-        meta.innerHTML = `<span class="warehouse-context-pill">${parts.join(' • ')}</span>`;
+        meta.innerHTML = parts.map((part) => `<span class="warehouse-context-pill">${part}</span>`).join('');
     }
 
     async function populateItemsFilter() {
@@ -149,8 +156,9 @@
         const effectiveWindow = Array.isArray(payload) ? windowValue : toNumber(payload.window, windowValue);
         const forecastFor = Array.isArray(payload) ? tomorrowIsoDate() : (payload.forecast_for || tomorrowIsoDate());
 
-        windowPill.textContent = `Tomorrow (${forecastFor}) • Window ${effectiveWindow} days`;
-        setMeta(selectedItem, selectedWarehouse, forecastFor);
+        forecastForPill.textContent = `Tomorrow (${forecastFor})`;
+        windowPill.textContent = `Window ${effectiveWindow} days`;
+        setMeta(selectedItem, selectedWarehouse);
         setStats(rows);
         renderRows(rows);
     }
