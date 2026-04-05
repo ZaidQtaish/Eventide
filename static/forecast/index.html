@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Eventide | Forecast</title>
+    <link rel="stylesheet" href="../style.css" />
+</head>
+
+<body>
+    <div id="sidebar-root"></div>
+
+    <main class="page-content">
+        <section class="dashboard-section">
+            <div class="container">
+                <div class="dashboard-header">
+                    <div>
+                        <h2>Forecast</h2>
+                        <p class="section-subtitle">Tomorrow forecast based on moving-average inbound and outbound inventory flow</p>
+                    </div>
+                </div>
+
+                <div class="cards-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Rows</div>
+                        <div class="stat-value" id="forecast-stat-rows">--</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Avg In (total)</div>
+                        <div class="stat-value" id="forecast-stat-in">--</div>
+                    </div>
+                    <div class="stat-card warning">
+                        <div class="stat-label">Avg Out (total)</div>
+                        <div class="stat-value" id="forecast-stat-out">--</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Avg Net (total)</div>
+                        <div class="stat-value" id="forecast-stat-net">--</div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3>Filters</h3>
+                    </div>
+                    <div class="filter-row filters-with-clear">
+                        <input id="window-filter" class="form-control" type="number" min="1" max="90" value="7" placeholder="Window (days)" />
+                        <select id="item-filter" class="form-control">
+                            <option value="">All items</option>
+                        </select>
+                        <select id="warehouse-filter" class="form-control">
+                            <option value="">All warehouses</option>
+                        </select>
+                        <div class="filters-clear">
+                            <button id="apply-forecast-filter" class="cta-btn primary" type="button">Apply</button>
+                            <button id="clear-forecast-filter" class="cta-btn ghost" type="button">Clear</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel" style="margin-bottom: 20px;">
+                    <div class="panel-header">
+                        <h3>Forecast Results</h3>
+                        <span class="pill" id="window-pill">Tomorrow • Window 7 days</span>
+                    </div>
+                    <div id="forecast-meta" class="daily-history-context" hidden></div>
+                    <div class="forecast-table-wrap">
+                        <table class="forecast-table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Warehouse</th>
+                                    <th>Average In</th>
+                                    <th>Average Out</th>
+                                    <th>Average Net</th>
+                                </tr>
+                            </thead>
+                            <tbody id="forecast-table-body">
+                                <tr>
+                                    <td colspan="5" class="loading">Loading forecast...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 Eventide. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="../shared/sidebar.js"></script>
+    <script src="forecast.js"></script>
+</body>
+
+</html>

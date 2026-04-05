@@ -4,6 +4,7 @@
         if (pathname.startsWith('/app/items/')) return 'items';
         if (pathname.startsWith('/app/inventory/')) return 'inventory';
         if (pathname.startsWith('/app/warehouses/')) return 'warehouses';
+        if (pathname.startsWith('/app/forecast/')) return 'forecast';
         if (pathname.startsWith('/app/daily-history/')) return 'daily-history';
         if (pathname.startsWith('/app/events/')) return 'events';
         return 'dashboard';
@@ -26,6 +27,7 @@
                     <a class="sidebar-link ${active === 'dashboard' ? 'active' : ''}" href="/app/">Dashboard</a>
                     <a class="sidebar-link ${active === 'inventory' ? 'active' : ''}" href="/app/inventory/">Inventory</a>
                     <a class="sidebar-link ${active === 'warehouses' ? 'active' : ''}" href="/app/warehouses/">Warehouses</a>
+                    <a class="sidebar-link ${active === 'forecast' ? 'active' : ''}" href="/app/forecast/">Forecast</a>
                     <a class="sidebar-link ${active === 'daily-history' ? 'active' : ''}" href="/app/daily-history/">Daily History</a>
                     <a class="sidebar-link ${active === 'events' ? 'active' : ''}" href="/app/events/">Events</a>
                     ${adminSection}

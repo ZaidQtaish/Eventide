@@ -59,8 +59,9 @@ func (a *App) GetForecastHandler(w http.ResponseWriter, r *http.Request) {
 	// Calculate moving averages from statements
 	forecasts := calculateMovingAverages(statements, window)
 	response := ForecastResponse{
-		Window:    window,
-		Forecasts: forecasts,
+		ForecastFor: time.Now().AddDate(0, 0, 1).Format("2006-01-02"),
+		Window:      window,
+		Forecasts:   forecasts,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

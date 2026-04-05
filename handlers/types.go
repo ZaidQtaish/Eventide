@@ -103,8 +103,9 @@ type MovingAverage struct {
 }
 
 type ForecastResponse struct {
-	Window    int             `json:"window"`
-	Forecasts []MovingAverage `json:"forecasts"`
+	ForecastFor string          `json:"forecast_for"`
+	Window      int             `json:"window"`
+	Forecasts   []MovingAverage `json:"forecasts"`
 }
 
 type httpError struct {

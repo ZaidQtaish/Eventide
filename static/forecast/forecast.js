@@ -1,0 +1,184 @@
+(() => {
+    const windowInput = document.getElementById('window-filter');
+    const itemFilter = document.getElementById('item-filter');
+    const warehouseFilter = document.getElementById('warehouse-filter');
+    const applyBtn = document.getElementById('apply-forecast-filter');
+    const clearBtn = document.getElementById('clear-forecast-filter');
+    const tableBody = document.getElementById('forecast-table-body');
+    const windowPill = document.getElementById('window-pill');
+    const meta = document.getElementById('forecast-meta');
+
+    const statRows = document.getElementById('forecast-stat-rows');
+    const statIn = document.getElementById('forecast-stat-in');
+    const statOut = document.getElementById('forecast-stat-out');
+    const statNet = document.getElementById('forecast-stat-net');
+
+    const itemsById = new Map();
+
+    function toNumber(value, fallback = 0) {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : fallback;
+    }
+
+    function getAverageNet(row) {
+        const net = row.average_net_change;
+        if (net !== undefined && net !== null) return toNumber(net, 0);
+        return toNumber(row.average_in_quantity, 0) - toNumber(row.average_out_quantity, 0);
+    }
+
+    function tomorrowIsoDate() {
+        const d = new Date();
+        d.setDate(d.getDate() + 1);
+        return d.toISOString().slice(0, 10);
+    }
+
+    function setStats(rows) {
+        const totalRows = rows.length;
+        const totalIn = rows.reduce((sum, row) => sum + toNumber(row.average_in_quantity, 0), 0);
+        const totalOut = rows.reduce((sum, row) => sum + toNumber(row.average_out_quantity, 0), 0);
+        const totalNet = rows.reduce((sum, row) => sum + getAverageNet(row), 0);
+
+        statRows.textContent = String(totalRows);
+        statIn.textContent = totalIn.toFixed(0);
+        statOut.textContent = totalOut.toFixed(0);
+        statNet.textContent = totalNet.toFixed(0);
+    }
+
+    function renderRows(rows) {
+        if (!rows.length) {
+            tableBody.innerHTML = '<tr><td colspan="5" class="loading">No forecast rows found for current filters.</td></tr>';
+            return;
+        }
+
+        tableBody.innerHTML = rows.map((row) => {
+            const item = row.item_name || `Item #${row.item_id || '-'}`;
+            const warehouse = row.warehouse_code || (row.warehouse_id ? `WH ${row.warehouse_id}` : '-');
+            const avgIn = toNumber(row.average_in_quantity, 0);
+            const avgOut = toNumber(row.average_out_quantity, 0);
+            const avgNet = getAverageNet(row);
+            const netClass = avgNet >= 0 ? 'forecast-net-up' : 'forecast-net-down';
+
+            return `
+                <tr>
+                    <td>${item}</td>
+                    <td>${warehouse}</td>
+                    <td>${avgIn.toFixed(0)}</td>
+                    <td>${avgOut.toFixed(0)}</td>
+                    <td><span class="forecast-net ${netClass}">${avgNet >= 0 ? '+' : ''}${avgNet.toFixed(0)}</span></td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function setMeta(selectedItem, selectedWarehouse, forecastFor) {
+        const parts = [`Forecast for: ${forecastFor}`];
+        if (selectedItem) {
+            const itemData = itemsById.get(Number(selectedItem));
+            const label = itemData ? `${itemData.name} (${itemData.sku || 'SKU N/A'})` : `Item #${selectedItem}`;
+            parts.push(`Item: ${label}`);
+        }
+        if (selectedWarehouse) {
+            parts.push(`Warehouse: ${selectedWarehouse}`);
+        }
+
+        meta.hidden = false;
+        meta.innerHTML = `<span class="warehouse-context-pill">${parts.join(' • ')}</span>`;
+    }
+
+    async function populateItemsFilter() {
+        const response = await fetch('/api/items');
+        if (!response.ok) return;
+
+        const items = await response.json();
+        itemFilter.innerHTML = '<option value="">All items</option>';
+        itemsById.clear();
+
+        (items || []).forEach((item) => {
+            const id = Number(item.item_id);
+            if (!Number.isFinite(id)) return;
+
+            itemsById.set(id, {
+                name: item.name || 'Unnamed item',
+                sku: item.sku || '',
+            });
+
+            const option = document.createElement('option');
+            option.value = String(id);
+            option.textContent = `${item.name || 'Unnamed item'} (${item.sku || 'SKU N/A'})`;
+            itemFilter.appendChild(option);
+        });
+    }
+
+    async function populateWarehouseFilter() {
+        const response = await fetch('/api/warehouses');
+        if (!response.ok) return;
+
+        const warehouses = await response.json();
+        warehouseFilter.innerHTML = '<option value="">All warehouses</option>';
+
+        (warehouses || []).forEach((warehouse) => {
+            const code = String(warehouse.code || '').trim();
+            if (!code) return;
+            const option = document.createElement('option');
+            option.value = code;
+            option.textContent = code;
+            warehouseFilter.appendChild(option);
+        });
+    }
+
+    async function loadForecast() {
+        const windowValue = Math.max(1, parseInt(windowInput.value || '7', 10) || 7);
+        windowInput.value = String(windowValue);
+
+        const params = new URLSearchParams({ window: String(windowValue) });
+        const selectedItem = (itemFilter.value || '').trim();
+        const selectedWarehouse = (warehouseFilter.value || '').trim();
+
+        if (selectedItem) params.set('item_id', selectedItem);
+        if (selectedWarehouse) params.set('warehouse_code', selectedWarehouse);
+
+        tableBody.innerHTML = '<tr><td colspan="5" class="loading">Loading forecast...</td></tr>';
+
+        const response = await fetch(`/api/forecast?${params.toString()}`);
+        if (!response.ok) {
+            throw new Error(await response.text() || 'Failed to load forecast');
+        }
+
+        const payload = await response.json();
+        const rows = Array.isArray(payload) ? payload : (payload.forecasts || []);
+        const effectiveWindow = Array.isArray(payload) ? windowValue : toNumber(payload.window, windowValue);
+        const forecastFor = Array.isArray(payload) ? tomorrowIsoDate() : (payload.forecast_for || tomorrowIsoDate());
+
+        windowPill.textContent = `Tomorrow (${forecastFor}) • Window ${effectiveWindow} days`;
+        setMeta(selectedItem, selectedWarehouse, forecastFor);
+        setStats(rows);
+        renderRows(rows);
+    }
+
+    function attachEvents() {
+        applyBtn?.addEventListener('click', () => {
+            loadForecast().catch((err) => {
+                tableBody.innerHTML = `<tr><td colspan="5" class="loading">Error loading forecast: ${err.message}</td></tr>`;
+            });
+        });
+
+        clearBtn?.addEventListener('click', () => {
+            windowInput.value = '7';
+            itemFilter.value = '';
+            warehouseFilter.value = '';
+            loadForecast().catch((err) => {
+                tableBody.innerHTML = `<tr><td colspan="5" class="loading">Error loading forecast: ${err.message}</td></tr>`;
+            });
+        });
+    }
+
+    async function init() {
+        attachEvents();
+        await Promise.all([populateItemsFilter(), populateWarehouseFilter()]);
+        await loadForecast();
+    }
+
+    init().catch((err) => {
+        tableBody.innerHTML = `<tr><td colspan="5" class="loading">Error loading forecast: ${err.message}</td></tr>`;
+    });
+})();
