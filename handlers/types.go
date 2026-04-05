@@ -92,6 +92,19 @@ type Warehouse struct {
 	Status string `json:"status"`
 }
 
+type MovingAverage struct {
+	ItemID           int     `json:"item_id"`
+	ItemName         string  `json:"item_name"`
+	WarehouseID      int     `json:"warehouse_id"`
+	Code             string  `json:"warehouse_code"`
+	AverageNetChange float64 `json:"average_net_change"`
+}
+
+type ForecastResponse struct {
+	Window    int             `json:"window"`
+	Forecasts []MovingAverage `json:"forecasts"`
+}
+
 type httpError struct {
 	status int
 	msg    string
