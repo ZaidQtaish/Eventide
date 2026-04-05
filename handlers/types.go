@@ -93,11 +93,13 @@ type Warehouse struct {
 }
 
 type MovingAverage struct {
-	ItemID           int     `json:"item_id"`
-	ItemName         string  `json:"item_name"`
-	WarehouseID      int     `json:"warehouse_id"`
-	Code             string  `json:"warehouse_code"`
-	AverageNetChange float64 `json:"average_net_change"`
+	ItemID             int     `json:"item_id"`
+	ItemName           string  `json:"item_name"`
+	WarehouseID        int     `json:"warehouse_id"`
+	Code               string  `json:"warehouse_code"`
+	AverageInQuantity  float64 `json:"average_in_quantity"`
+	AverageOutQuantity float64 `json:"average_out_quantity"`
+	AverageNetChange   float64 `json:"average_net_change"`
 }
 
 type ForecastResponse struct {

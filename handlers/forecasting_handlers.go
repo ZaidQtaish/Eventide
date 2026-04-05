@@ -66,7 +66,7 @@ func (a *App) GetForecastHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-// calculateMovingAverages computes moving average of net quantity changes
+// calculateMovingAverages computes moving averages for inbound and outbound quantities.
 func calculateMovingAverages(statements []DailyStatement, window int) []MovingAverage {
 	// Group statements by item and warehouse
 	grouped := make(map[string][]DailyStatement)
@@ -81,27 +81,35 @@ func calculateMovingAverages(statements []DailyStatement, window int) []MovingAv
 			continue
 		}
 
-		// Calculate simple moving average of net changes
-		sum := 0
+		// Calculate simple moving averages for in/out, then derive net.
+		sumIn := 0
+		sumOut := 0
 		count := 0
 		for _, stmt := range stmts {
 			if count < window {
-				sum += stmt.NetChange
+				sumIn += stmt.InQuantity
+				sumOut += stmt.OutQuantity
 				count++
 			}
 		}
 
-		var avgNetChange float64
+		var avgIn float64
+		var avgOut float64
+		var avgNet float64
 		if count > 0 {
-			avgNetChange = float64(sum) / float64(count)
+			avgIn = float64(sumIn) / float64(count)
+			avgOut = float64(sumOut) / float64(count)
+			avgNet = avgIn - avgOut
 		}
 
 		forecasts = append(forecasts, MovingAverage{
-			ItemID:           stmts[0].ItemID,
-			ItemName:         stmts[0].ItemName,
-			WarehouseID:      stmts[0].WarehouseID,
-			Code:             stmts[0].WarehouseCode,
-			AverageNetChange: avgNetChange,
+			ItemID:             stmts[0].ItemID,
+			ItemName:           stmts[0].ItemName,
+			WarehouseID:        stmts[0].WarehouseID,
+			Code:               stmts[0].WarehouseCode,
+			AverageInQuantity:  avgIn,
+			AverageOutQuantity: avgOut,
+			AverageNetChange:   avgNet,
 		})
 	}
 
