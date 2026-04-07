@@ -182,6 +182,11 @@
 
         const payload = await response.json();
         const rows = Array.isArray(payload) ? payload : (payload.forecasts || []);
+        const visibleRows = rows.filter((row) => {
+            const avgIn = toNumber(row.average_in_quantity, 0);
+            const avgOut = toNumber(row.average_out_quantity, 0);
+            return !(avgIn === 0 && avgOut === 0);
+        });
         const effectiveWindow = Array.isArray(payload) ? windowValue : toNumber(payload.window, windowValue);
         const effectivePeriod = Array.isArray(payload) ? currentPeriod : String(payload.period || currentPeriod).toLowerCase();
         const forecastFor = Array.isArray(payload) ? tomorrowIsoDate() : (payload.forecast_for || tomorrowIsoDate());
@@ -189,8 +194,8 @@
         forecastForPill.textContent = effectivePeriod === 'monthly' ? `Next month (${forecastFor})` : `Tomorrow (${forecastFor})`;
         windowPill.textContent = effectivePeriod === 'monthly' ? `Window ${effectiveWindow} months` : `Window ${effectiveWindow} days`;
         setMeta(selectedItem, selectedWarehouse);
-        setStats(rows);
-        renderRows(rows);
+        setStats(visibleRows);
+        renderRows(visibleRows);
     }
 
     function attachEvents() {
