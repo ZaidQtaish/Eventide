@@ -141,7 +141,7 @@ func calculateMovingAverages(statements []DailyStatement, window int) []MovingAv
 
 			avgIn = math.Floor(rawAvgIn)
 			avgOut = math.Ceil(rawAvgOut)
-			avgNet = math.Round(rawAvgIn - rawAvgOut)
+			avgNet = math.Round(avgIn - avgOut)
 		}
 
 		forecasts = append(forecasts, MovingAverage{
@@ -215,7 +215,7 @@ func calculateMonthlyMovingAverages(statements []DailyStatement, window int, now
 
 		avgIn := math.Floor(rawAvgIn)
 		avgOut := math.Ceil(rawAvgOut)
-		avgNet := math.Round(rawAvgIn - rawAvgOut)
+		avgNet := math.Round(avgIn - avgOut)
 
 		forecasts = append(forecasts, MovingAverage{
 			ItemID:             meta.ItemID,
