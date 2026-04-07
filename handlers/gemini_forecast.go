@@ -24,8 +24,9 @@ func generateGeminiNetForecast(ctx context.Context, period, forecastFor string, 
 
 	model := strings.TrimSpace(os.Getenv("GEMINI_MODEL"))
 	if model == "" {
-		model = "gemini-1.5-flash"
+		model = "gemini-2.5-flash"
 	}
+	model = strings.TrimPrefix(model, "models/")
 
 	input := make([]map[string]any, 0, len(forecasts))
 	for _, row := range forecasts {
@@ -79,27 +80,15 @@ func generateGeminiNetForecast(ctx context.Context, period, forecastFor string, 
 	callCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s", model, apiKey)
-	httpReq, err := http.NewRequestWithContext(callCtx, http.MethodPost, url, bytes.NewReader(bodyBytes))
+	parsed, err := requestGeminiGenerateContent(callCtx, apiKey, model, bodyBytes)
 	if err != nil {
-		return nil, err
-	}
-	httpReq.Header.Set("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(httpReq)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		respBody, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("gemini request failed: %s", strings.TrimSpace(string(respBody)))
-	}
-
-	var parsed geminiResponse
-	if err := json.NewDecoder(resp.Body).Decode(&parsed); err != nil {
-		return nil, err
+		// Fallback to a known-good model for this API version when configured model is unsupported.
+		if !strings.Contains(model, "2.5-flash") {
+			parsed, err = requestGeminiGenerateContent(callCtx, apiKey, "gemini-2.5-flash", bodyBytes)
+		}
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	text := ""
@@ -128,6 +117,33 @@ func generateGeminiNetForecast(ctx context.Context, period, forecastFor string, 
 		out[forecastKey(row.ItemID, row.WarehouseID)] = row.AIForecastNet
 	}
 	return out, nil
+}
+
+func requestGeminiGenerateContent(ctx context.Context, apiKey, model string, bodyBytes []byte) (geminiResponse, error) {
+	var parsed geminiResponse
+	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s", model, apiKey)
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return parsed, err
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(httpReq)
+	if err != nil {
+		return parsed, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		respBody, _ := io.ReadAll(resp.Body)
+		return parsed, fmt.Errorf("gemini request failed: %s", strings.TrimSpace(string(respBody)))
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&parsed); err != nil {
+		return parsed, err
+	}
+
+	return parsed, nil
 }
 
 func extractJSONArray(s string) string {
