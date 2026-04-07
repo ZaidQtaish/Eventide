@@ -50,6 +50,8 @@ func generateGeminiNetForecast(ctx context.Context, period, forecastFor string, 
 			"Do not include markdown, comments, or extra keys.\n"+
 			"Context: period=%s, forecast_for=%s, window=%d.\n"+
 			"Use the moving-average baseline rows below to estimate ai_forecast_net for each row.\n"+
+			"Also account for seasonality for the target period (month/day effects, recurring seasonal demand), while keeping adjustments conservative unless baseline strongly suggests otherwise.\n"+
+			"If seasonality signal is weak, stay close to baseline average_net_change.\n"+
 			"Baseline rows JSON:\n%s",
 		period,
 		forecastFor,
