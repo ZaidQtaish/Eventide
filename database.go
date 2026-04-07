@@ -2,16 +2,21 @@ package main
 
 import (
 	"context"
+	"errors"
+	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 var db *pgxpool.Pool
 
-const connStr = "postgres://postgres:admin123@127.0.0.1:5432/eventide"
-
 // InitDB initializes the database connection pool
 func InitDB() error {
+	connStr := os.Getenv("DATABASE_URL")
+	if connStr == "" {
+		return errors.New("DATABASE_URL is not set")
+	}
+
 	var err error
 	db, err = pgxpool.New(context.Background(), connStr)
 	if err != nil {

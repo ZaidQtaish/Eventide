@@ -93,13 +93,14 @@ type Warehouse struct {
 }
 
 type MovingAverage struct {
-	ItemID             int     `json:"item_id"`
-	ItemName           string  `json:"item_name"`
-	WarehouseID        int     `json:"warehouse_id"`
-	Code               string  `json:"warehouse_code"`
-	AverageInQuantity  float64 `json:"average_in_quantity"`
-	AverageOutQuantity float64 `json:"average_out_quantity"`
-	AverageNetChange   float64 `json:"average_net_change"`
+	ItemID             int      `json:"item_id"`
+	ItemName           string   `json:"item_name"`
+	WarehouseID        int      `json:"warehouse_id"`
+	Code               string   `json:"warehouse_code"`
+	AverageInQuantity  float64  `json:"average_in_quantity"`
+	AverageOutQuantity float64  `json:"average_out_quantity"`
+	AverageNetChange   float64  `json:"average_net_change"`
+	AIForecastNet      *float64 `json:"ai_forecast_net,omitempty"`
 }
 
 type ForecastResponse struct {
@@ -129,4 +130,29 @@ type eventPlan struct {
 type monthlyAccumulator struct {
 	in  int
 	out int
+}
+
+type geminiRow struct {
+	ItemID        int     `json:"item_id"`
+	WarehouseID   int     `json:"warehouse_id"`
+	AIForecastNet float64 `json:"ai_forecast_net"`
+}
+
+type geminiRequest struct {
+	Contents []struct {
+		Parts []struct {
+			Text string `json:"text"`
+		} `json:"parts"`
+	} `json:"contents"`
+	GenerationConfig map[string]any `json:"generationConfig,omitempty"`
+}
+
+type geminiResponse struct {
+	Candidates []struct {
+		Content struct {
+			Parts []struct {
+				Text string `json:"text"`
+			} `json:"parts"`
+		} `json:"content"`
+	} `json:"candidates"`
 }
