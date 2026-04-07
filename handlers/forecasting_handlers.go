@@ -135,14 +135,12 @@ func calculateMovingAverages(statements []DailyStatement, window int) []MovingAv
 		var avgIn float64
 		var avgOut float64
 		var avgNet float64
-		if count > 0 {
-			rawAvgIn := float64(sumIn) / float64(count)
-			rawAvgOut := float64(sumOut) / float64(count)
+		rawAvgIn := float64(sumIn) / float64(window)
+		rawAvgOut := float64(sumOut) / float64(window)
 
-			avgIn = math.Floor(rawAvgIn)
-			avgOut = math.Ceil(rawAvgOut)
-			avgNet = math.Round(avgIn - avgOut)
-		}
+		avgIn = math.Floor(rawAvgIn)
+		avgOut = math.Ceil(rawAvgOut)
+		avgNet = math.Round(avgIn - avgOut)
 
 		forecasts = append(forecasts, MovingAverage{
 			ItemID:             stmts[0].ItemID,
