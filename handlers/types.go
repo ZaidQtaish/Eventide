@@ -104,6 +104,7 @@ type MovingAverage struct {
 
 type ForecastResponse struct {
 	ForecastFor string          `json:"forecast_for"`
+	Period      string          `json:"period"`
 	Window      int             `json:"window"`
 	Forecasts   []MovingAverage `json:"forecasts"`
 }
@@ -123,4 +124,9 @@ type eventMutation struct {
 
 type eventPlan struct {
 	mutations []eventMutation
+}
+
+type monthlyAccumulator struct {
+	in  int
+	out int
 }
