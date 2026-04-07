@@ -1,4 +1,6 @@
 (() => {
+    const modeDailyBtn = document.getElementById('mode-daily');
+    const modeMonthlyBtn = document.getElementById('mode-monthly');
     const windowInput = document.getElementById('window-filter');
     const itemFilter = document.getElementById('item-filter');
     const warehouseFilter = document.getElementById('warehouse-filter');
@@ -15,6 +17,8 @@
     const statNet = document.getElementById('forecast-stat-net');
 
     const itemsById = new Map();
+    const defaultWindowByMode = { daily: 7, monthly: 3 };
+    let currentPeriod = 'daily';
 
     function toNumber(value, fallback = 0) {
         const parsed = Number(value);
@@ -31,6 +35,26 @@
         const d = new Date();
         d.setDate(d.getDate() + 1);
         return d.toISOString().slice(0, 10);
+    }
+
+    function setModeUI(period) {
+        const isDaily = period === 'daily';
+        currentPeriod = isDaily ? 'daily' : 'monthly';
+
+        modeDailyBtn?.classList.toggle('active', isDaily);
+        modeMonthlyBtn?.classList.toggle('active', !isDaily);
+
+        if (windowInput) {
+            if (isDaily) {
+                windowInput.min = '1';
+                windowInput.max = '90';
+                windowInput.placeholder = 'Window (days)';
+            } else {
+                windowInput.min = '1';
+                windowInput.max = '24';
+                windowInput.placeholder = 'Window (months)';
+            }
+        }
     }
 
     function setStats(rows) {
@@ -134,10 +158,15 @@
     }
 
     async function loadForecast() {
-        const windowValue = Math.max(1, parseInt(windowInput.value || '7', 10) || 7);
+        const defaultWindow = defaultWindowByMode[currentPeriod] || 7;
+        const inputMax = currentPeriod === 'monthly' ? 24 : 90;
+        const windowValue = Math.min(inputMax, Math.max(1, parseInt(windowInput.value || String(defaultWindow), 10) || defaultWindow));
         windowInput.value = String(windowValue);
 
-        const params = new URLSearchParams({ window: String(windowValue) });
+        const params = new URLSearchParams({
+            period: currentPeriod,
+            window: String(windowValue),
+        });
         const selectedItem = (itemFilter.value || '').trim();
         const selectedWarehouse = (warehouseFilter.value || '').trim();
 
@@ -154,16 +183,33 @@
         const payload = await response.json();
         const rows = Array.isArray(payload) ? payload : (payload.forecasts || []);
         const effectiveWindow = Array.isArray(payload) ? windowValue : toNumber(payload.window, windowValue);
+        const effectivePeriod = Array.isArray(payload) ? currentPeriod : String(payload.period || currentPeriod).toLowerCase();
         const forecastFor = Array.isArray(payload) ? tomorrowIsoDate() : (payload.forecast_for || tomorrowIsoDate());
 
-        forecastForPill.textContent = `Tomorrow (${forecastFor})`;
-        windowPill.textContent = `Window ${effectiveWindow} days`;
+        forecastForPill.textContent = effectivePeriod === 'monthly' ? `Next month (${forecastFor})` : `Tomorrow (${forecastFor})`;
+        windowPill.textContent = effectivePeriod === 'monthly' ? `Window ${effectiveWindow} months` : `Window ${effectiveWindow} days`;
         setMeta(selectedItem, selectedWarehouse);
         setStats(rows);
         renderRows(rows);
     }
 
     function attachEvents() {
+        modeDailyBtn?.addEventListener('click', () => {
+            setModeUI('daily');
+            windowInput.value = String(defaultWindowByMode.daily);
+            loadForecast().catch((err) => {
+                tableBody.innerHTML = `<tr><td colspan="5" class="loading">Error loading forecast: ${err.message}</td></tr>`;
+            });
+        });
+
+        modeMonthlyBtn?.addEventListener('click', () => {
+            setModeUI('monthly');
+            windowInput.value = String(defaultWindowByMode.monthly);
+            loadForecast().catch((err) => {
+                tableBody.innerHTML = `<tr><td colspan="5" class="loading">Error loading forecast: ${err.message}</td></tr>`;
+            });
+        });
+
         applyBtn?.addEventListener('click', () => {
             loadForecast().catch((err) => {
                 tableBody.innerHTML = `<tr><td colspan="5" class="loading">Error loading forecast: ${err.message}</td></tr>`;
@@ -171,7 +217,7 @@
         });
 
         clearBtn?.addEventListener('click', () => {
-            windowInput.value = '7';
+            windowInput.value = String(defaultWindowByMode[currentPeriod] || 7);
             itemFilter.value = '';
             warehouseFilter.value = '';
             loadForecast().catch((err) => {
@@ -181,6 +227,7 @@
     }
 
     async function init() {
+        setModeUI('daily');
         attachEvents();
         await Promise.all([populateItemsFilter(), populateWarehouseFilter()]);
         await loadForecast();
