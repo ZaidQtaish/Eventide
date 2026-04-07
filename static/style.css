@@ -408,6 +408,16 @@ a {
     font-size: 14px;
 }
 
+.forecast-table thead th,
+.forecast-table tbody td {
+    vertical-align: middle;
+}
+
+.forecast-table thead th:nth-child(n+3),
+.forecast-table tbody td:nth-child(n+3) {
+    text-align: center;
+}
+
 .forecast-table tbody tr:last-child td {
     border-bottom: none;
 }

@@ -31,6 +31,12 @@
         return toNumber(row.average_in_quantity, 0) - toNumber(row.average_out_quantity, 0);
     }
 
+    function getAIForecast(row) {
+        const value = row.ai_forecast ?? row.ai_forecast_net ?? row.ai_forecast_quantity;
+        if (value === undefined || value === null) return null;
+        return toNumber(value, 0);
+    }
+
     function tomorrowIsoDate() {
         const d = new Date();
         d.setDate(d.getDate() + 1);
@@ -71,7 +77,7 @@
 
     function renderRows(rows) {
         if (!rows.length) {
-            tableBody.innerHTML = '<tr><td colspan="5" class="loading">No forecast rows found for current filters.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="6" class="loading">No forecast rows found for current filters.</td></tr>';
             return;
         }
 
@@ -82,6 +88,10 @@
             const avgOut = toNumber(row.average_out_quantity, 0);
             const avgNet = getAverageNet(row);
             const netClass = avgNet >= 0 ? 'forecast-net-up' : 'forecast-net-down';
+            const aiForecast = getAIForecast(row);
+            const aiHtml = aiForecast === null
+                ? '—'
+                : `<span class="forecast-net ${aiForecast >= 0 ? 'forecast-net-up' : 'forecast-net-down'}">${aiForecast >= 0 ? '+' : ''}${aiForecast.toFixed(0)}</span>`;
 
             return `
                 <tr>
@@ -90,6 +100,7 @@
                     <td>${avgIn.toFixed(0)}</td>
                     <td>${avgOut.toFixed(0)}</td>
                     <td><span class="forecast-net ${netClass}">${avgNet >= 0 ? '+' : ''}${avgNet.toFixed(0)}</span></td>
+                    <td>${aiHtml}</td>
                 </tr>
             `;
         }).join('');
@@ -173,7 +184,7 @@
         if (selectedItem) params.set('item_id', selectedItem);
         if (selectedWarehouse) params.set('warehouse_code', selectedWarehouse);
 
-        tableBody.innerHTML = '<tr><td colspan="5" class="loading">Loading forecast...</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="6" class="loading">Loading forecast...</td></tr>';
 
         const response = await fetch(`/api/forecast?${params.toString()}`);
         if (!response.ok) {
@@ -203,7 +214,7 @@
             setModeUI('daily');
             windowInput.value = String(defaultWindowByMode.daily);
             loadForecast().catch((err) => {
-                tableBody.innerHTML = `<tr><td colspan="5" class="loading">Error loading forecast: ${err.message}</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="6" class="loading">Error loading forecast: ${err.message}</td></tr>`;
             });
         });
 
@@ -211,13 +222,13 @@
             setModeUI('monthly');
             windowInput.value = String(defaultWindowByMode.monthly);
             loadForecast().catch((err) => {
-                tableBody.innerHTML = `<tr><td colspan="5" class="loading">Error loading forecast: ${err.message}</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="6" class="loading">Error loading forecast: ${err.message}</td></tr>`;
             });
         });
 
         applyBtn?.addEventListener('click', () => {
             loadForecast().catch((err) => {
-                tableBody.innerHTML = `<tr><td colspan="5" class="loading">Error loading forecast: ${err.message}</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="6" class="loading">Error loading forecast: ${err.message}</td></tr>`;
             });
         });
 
@@ -226,7 +237,7 @@
             itemFilter.value = '';
             warehouseFilter.value = '';
             loadForecast().catch((err) => {
-                tableBody.innerHTML = `<tr><td colspan="5" class="loading">Error loading forecast: ${err.message}</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="6" class="loading">Error loading forecast: ${err.message}</td></tr>`;
             });
         });
     }
@@ -239,6 +250,6 @@
     }
 
     init().catch((err) => {
-        tableBody.innerHTML = `<tr><td colspan="5" class="loading">Error loading forecast: ${err.message}</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="6" class="loading">Error loading forecast: ${err.message}</td></tr>`;
     });
 })();
