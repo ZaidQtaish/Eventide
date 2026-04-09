@@ -19,6 +19,7 @@
     const itemsById = new Map();
     const defaultWindowByMode = { daily: 7, monthly: 3 };
     let currentPeriod = 'daily';
+    let activeLoadToken = 0;
 
     function toNumber(value, fallback = 0) {
         const parsed = Number(value);
@@ -36,6 +37,13 @@
         if (value === undefined || value === null) return null;
         const parsed = toNumber(value, 0);
         return parsed === 0 ? null : parsed;
+    }
+
+    function forecastRowKey(row) {
+        const itemId = row.item_id ?? '';
+        const warehouseId = row.warehouse_id ?? '';
+        const warehouseCode = row.warehouse_code ?? '';
+        return `${itemId}|${warehouseId}|${warehouseCode}`;
     }
 
     function suppressZeroInOut(rows) {
@@ -84,7 +92,9 @@
         statNet.textContent = totalNet.toFixed(0);
     }
 
-    function renderRows(rows) {
+    function renderRows(rows, options = {}) {
+        const { aiLoading = false } = options;
+
         if (!rows.length) {
             tableBody.innerHTML = '<tr><td colspan="6" class="loading">No forecast rows found for current filters.</td></tr>';
             return;
@@ -98,9 +108,12 @@
             const avgNet = getAverageNet(row);
             const netClass = avgNet >= 0 ? 'forecast-net-up' : 'forecast-net-down';
             const aiForecast = getAIForecast(row);
-            const aiHtml = aiForecast === null
-                ? '—'
-                : `<span class="forecast-net ${aiForecast >= 0 ? 'forecast-net-up' : 'forecast-net-down'}">${aiForecast >= 0 ? '+' : ''}${aiForecast.toFixed(0)}</span>`;
+            let aiHtml = '—';
+            if (aiForecast !== null) {
+                aiHtml = `<span class="forecast-net ${aiForecast >= 0 ? 'forecast-net-up' : 'forecast-net-down'}">${aiForecast >= 0 ? '+' : ''}${aiForecast.toFixed(0)}</span>`;
+            } else if (aiLoading) {
+                aiHtml = '<span class="loading">Loading...</span>';
+            }
 
             return `
                 <tr>
@@ -113,6 +126,46 @@
                 </tr>
             `;
         }).join('');
+    }
+
+    function buildForecastParams(windowValue, includeAI) {
+        const params = new URLSearchParams({
+            period: currentPeriod,
+            window: String(windowValue),
+            include_ai: includeAI ? 'true' : 'false',
+        });
+
+        const selectedItem = (itemFilter.value || '').trim();
+        const selectedWarehouse = (warehouseFilter.value || '').trim();
+
+        if (selectedItem) params.set('item_id', selectedItem);
+        if (selectedWarehouse) params.set('warehouse_code', selectedWarehouse);
+
+        return params;
+    }
+
+    async function fetchForecastPayload(params) {
+        const response = await fetch(`/api/forecast?${params.toString()}`);
+        if (!response.ok) {
+            throw new Error(await response.text() || 'Failed to load forecast');
+        }
+        return response.json();
+    }
+
+    function normalizeForecastPayload(payload, fallbackWindow) {
+        const rows = Array.isArray(payload) ? payload : (payload.forecasts || []);
+        const filteredRows = suppressZeroInOut(rows);
+        const effectiveWindow = Array.isArray(payload) ? fallbackWindow : toNumber(payload.window, fallbackWindow);
+        const effectivePeriod = Array.isArray(payload) ? currentPeriod : String(payload.period || currentPeriod).toLowerCase();
+        const forecastFor = Array.isArray(payload) ? tomorrowIsoDate() : (payload.forecast_for || tomorrowIsoDate());
+
+        return {
+            rows,
+            filteredRows,
+            effectiveWindow,
+            effectivePeriod,
+            forecastFor,
+        };
     }
 
     function setMeta(selectedItem, selectedWarehouse) {
@@ -178,40 +231,53 @@
     }
 
     async function loadForecast() {
+        const loadToken = ++activeLoadToken;
         const defaultWindow = defaultWindowByMode[currentPeriod] || 7;
         const inputMax = currentPeriod === 'monthly' ? 24 : 90;
         const windowValue = Math.min(inputMax, Math.max(1, parseInt(windowInput.value || String(defaultWindow), 10) || defaultWindow));
         windowInput.value = String(windowValue);
 
-        const params = new URLSearchParams({
-            period: currentPeriod,
-            window: String(windowValue),
-        });
         const selectedItem = (itemFilter.value || '').trim();
         const selectedWarehouse = (warehouseFilter.value || '').trim();
 
-        if (selectedItem) params.set('item_id', selectedItem);
-        if (selectedWarehouse) params.set('warehouse_code', selectedWarehouse);
-
         tableBody.innerHTML = '<tr><td colspan="6" class="loading">Loading forecast...</td></tr>';
 
-        const response = await fetch(`/api/forecast?${params.toString()}`);
-        if (!response.ok) {
-            throw new Error(await response.text() || 'Failed to load forecast');
-        }
+        const baselinePayload = await fetchForecastPayload(buildForecastParams(windowValue, false));
+        if (loadToken !== activeLoadToken) return;
 
-        const payload = await response.json();
-        const rows = Array.isArray(payload) ? payload : (payload.forecasts || []);
-        const filteredRows = suppressZeroInOut(rows);
-        const effectiveWindow = Array.isArray(payload) ? windowValue : toNumber(payload.window, windowValue);
-        const effectivePeriod = Array.isArray(payload) ? currentPeriod : String(payload.period || currentPeriod).toLowerCase();
-        const forecastFor = Array.isArray(payload) ? tomorrowIsoDate() : (payload.forecast_for || tomorrowIsoDate());
+        const baseline = normalizeForecastPayload(baselinePayload, windowValue);
 
-        forecastForPill.textContent = effectivePeriod === 'monthly' ? `Next month (${forecastFor})` : `Tomorrow (${forecastFor})`;
-        windowPill.textContent = effectivePeriod === 'monthly' ? `Window ${effectiveWindow} months` : `Window ${effectiveWindow} days`;
+        forecastForPill.textContent = baseline.effectivePeriod === 'monthly' ? `Next month (${baseline.forecastFor})` : `Tomorrow (${baseline.forecastFor})`;
+        windowPill.textContent = baseline.effectivePeriod === 'monthly' ? `Window ${baseline.effectiveWindow} months` : `Window ${baseline.effectiveWindow} days`;
         setMeta(selectedItem, selectedWarehouse);
-        setStats(filteredRows);
-        renderRows(filteredRows);
+        setStats(baseline.filteredRows);
+        renderRows(baseline.filteredRows, { aiLoading: true });
+
+        if (!baseline.filteredRows.length) return;
+
+        try {
+            const aiPayload = await fetchForecastPayload(buildForecastParams(windowValue, true));
+            if (loadToken !== activeLoadToken) return;
+
+            const ai = normalizeForecastPayload(aiPayload, windowValue);
+            const aiByKey = new Map(ai.filteredRows.map((row) => [forecastRowKey(row), row]));
+            const mergedRows = baseline.filteredRows.map((baselineRow) => {
+                const aiRow = aiByKey.get(forecastRowKey(baselineRow));
+                if (!aiRow) return baselineRow;
+
+                return {
+                    ...baselineRow,
+                    ai_forecast: aiRow.ai_forecast,
+                    ai_forecast_net: aiRow.ai_forecast_net,
+                    ai_forecast_quantity: aiRow.ai_forecast_quantity,
+                };
+            });
+
+            renderRows(mergedRows, { aiLoading: false });
+        } catch {
+            if (loadToken !== activeLoadToken) return;
+            renderRows(baseline.filteredRows, { aiLoading: false });
+        }
     }
 
     function attachEvents() {

@@ -31,6 +31,20 @@ func (a *App) GetForecastHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	includeAI := true
+	includeAIStr := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("include_ai")))
+	if includeAIStr != "" {
+		switch includeAIStr {
+		case "1", "true", "yes", "y", "on":
+			includeAI = true
+		case "0", "false", "no", "n", "off":
+			includeAI = false
+		default:
+			http.Error(w, "Invalid include_ai (use true or false)", http.StatusBadRequest)
+			return
+		}
+	}
+
 	window := 7 // default 7-day window
 	if period == "monthly" {
 		window = 3 // default 3-month window
@@ -94,14 +108,16 @@ func (a *App) GetForecastHandler(w http.ResponseWriter, r *http.Request) {
 		forecasts = calculateMovingAverages(statements, window)
 	}
 
-	// Best-effort AI enrichment; baseline forecast still returns if AI is unavailable.
-	aiByKey, err := generateGeminiNetForecast(ctx, period, forecastFor, window, forecasts)
-	if err == nil && len(aiByKey) > 0 {
-		for i := range forecasts {
-			key := forecastKey(forecasts[i].ItemID, forecasts[i].WarehouseID)
-			if aiNet, ok := aiByKey[key]; ok {
-				v := aiNet
-				forecasts[i].AIForecastNet = &v
+	if includeAI {
+		// Best-effort AI enrichment; baseline forecast still returns if AI is unavailable.
+		aiByKey, err := generateGeminiNetForecast(ctx, period, forecastFor, window, forecasts)
+		if err == nil && len(aiByKey) > 0 {
+			for i := range forecasts {
+				key := forecastKey(forecasts[i].ItemID, forecasts[i].WarehouseID)
+				if aiNet, ok := aiByKey[key]; ok {
+					v := aiNet
+					forecasts[i].AIForecastNet = &v
+				}
 			}
 		}
 	}
