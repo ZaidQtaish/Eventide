@@ -77,7 +77,7 @@ func generateGeminiNetForecast(ctx context.Context, period, forecastFor string, 
 		return nil, err
 	}
 
-	callCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	callCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
 	parsed, err := requestGeminiGenerateContent(callCtx, apiKey, model, bodyBytes)
