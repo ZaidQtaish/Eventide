@@ -102,32 +102,6 @@ INSERT INTO items (name, sku, description, minimum_stock, category, supplier_id)
 ('Pen Pack (12)', 'OFF-004', 'Box of 12 ballpoint pens', 40, 'Supplies', 5),
 ('Notebook A5', 'OFF-005', 'Spiral-bound notebook 100 pages', 60, 'Supplies', 4);
 
--- Stock Snapshots
-INSERT INTO snapshot (item_id, warehouse_id, current_quantity, last_updated) VALUES
-(1, 1, 25, CURRENT_TIMESTAMP),
-(1, 2, 12, CURRENT_TIMESTAMP),
-(1, 4, 8, CURRENT_TIMESTAMP),
-(2, 1, 150, CURRENT_TIMESTAMP),
-(2, 2, 75, CURRENT_TIMESTAMP),
-(2, 4, 90, CURRENT_TIMESTAMP),
-(3, 1, 200, CURRENT_TIMESTAMP),
-(3, 2, 180, CURRENT_TIMESTAMP),
-(3, 4, 120, CURRENT_TIMESTAMP),
-(4, 1, 15, CURRENT_TIMESTAMP),
-(4, 2, 8, CURRENT_TIMESTAMP),
-(5, 1, 35, CURRENT_TIMESTAMP),
-(5, 2, 22, CURRENT_TIMESTAMP),
-(6, 1, 40, CURRENT_TIMESTAMP),
-(6, 4, 25, CURRENT_TIMESTAMP),
-(7, 1, 5, CURRENT_TIMESTAMP),
-(7, 2, 3, CURRENT_TIMESTAMP),
-(8, 1, 300, CURRENT_TIMESTAMP),
-(8, 2, 450, CURRENT_TIMESTAMP),
-(9, 1, 120, CURRENT_TIMESTAMP),
-(9, 4, 85, CURRENT_TIMESTAMP),
-(10, 1, 200, CURRENT_TIMESTAMP),
-(10, 2, 150, CURRENT_TIMESTAMP);
-
 -- Events (inventory transactions)
 INSERT INTO events (type, item_id, quantity_change, reason_code, user_id, warehouse_id, timestamp) VALUES
 ('inbound', 1, 25, 'PURCHASE', 1, 1, CURRENT_TIMESTAMP - INTERVAL '7 days'),

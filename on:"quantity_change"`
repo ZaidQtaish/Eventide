@@ -1,0 +1,24 @@
+  id  | item_id |   sku    |    code    | username | reason_code | quantity_change |         timestamp          
+------+---------+----------+------------+----------+-------------+-----------------+----------------------------
+ 8162 |       4 | TECH-004 | WH-CENTRAL | ahmad    | STOCK_CHECK |           -1194 | 2026-04-09 19:39:45.132812
+ 8161 |       3 | TECH-003 | WH-CENTRAL | rami     | STOCK_CHECK |           -3826 | 2026-04-09 19:39:45.132812
+ 8159 |       6 | OFF-001  | WH-CENTRAL | rami     | STOCK_CHECK |           -2004 | 2026-04-09 19:39:45.132812
+ 8158 |      10 | OFF-005  | WH-CENTRAL | ahmad    | STOCK_CHECK |           -5654 | 2026-04-09 19:39:45.132812
+ 8153 |       9 | OFF-004  | WH-CENTRAL | malik    | STOCK_CHECK |           -3640 | 2026-04-09 19:39:45.132812
+ 8151 |       8 | OFF-003  | WH-CENTRAL | malik    | STOCK_CHECK |           -7812 | 2026-04-09 19:39:45.132812
+ 8149 |       7 | OFF-002  | WH-CENTRAL | Noor     | STOCK_CHECK |           -1029 | 2026-04-09 19:39:45.132812
+ 8146 |       5 | TECH-005 | WH-CENTRAL | malik    | STOCK_CHECK |           -1653 | 2026-04-09 19:39:45.132812
+ 8140 |       2 | TECH-002 | WH-CENTRAL | zaid     | STOCK_CHECK |           -2291 | 2026-04-09 19:39:45.132812
+ 8137 |       1 | TECH-001 | WH-CENTRAL | zaid     | STOCK_CHECK |            -730 | 2026-04-09 19:39:45.132812
+ 8157 |       3 | TECH-003 | WH-SOUTH   | mohammad | STOCK_CHECK |           -5156 | 2026-04-09 19:39:45.132812
+ 8154 |       9 | OFF-004  | WH-EAST    | zaid     | STOCK_CHECK |           -3685 | 2026-04-09 19:39:45.132812
+ 8148 |       6 | OFF-001  | WH-EAST    | rami     | STOCK_CHECK |           -2059 | 2026-04-09 19:39:45.132812
+ 8144 |       3 | TECH-003 | WH-EAST    | test     | STOCK_CHECK |           -4498 | 2026-04-09 19:39:45.132812
+ 8142 |       2 | TECH-002 | WH-EAST    | zaid     | STOCK_CHECK |           -2885 | 2026-04-09 19:39:45.132812
+ 8139 |       1 | TECH-001 | WH-EAST    | mohammad | STOCK_CHECK |            -851 | 2026-04-09 19:39:45.132812
+ 8156 |      10 | OFF-005  | WH-WEST    | rami     | STOCK_CHECK |           -5145 | 2026-04-09 19:39:45.132812
+ 8160 |       6 | OFF-001  | WH-NORTH   | ahmad    | STOCK_CHECK |           -2041 | 2026-04-09 19:39:45.132812
+ 8155 |      10 | OFF-005  | WH-NORTH   | ahmad    | STOCK_CHECK |           -5062 | 2026-04-09 19:39:45.132812
+ 8152 |       8 | OFF-003  | WH-NORTH   | zaid     | STOCK_CHECK |           -8898 | 2026-04-09 19:39:45.132812
+(20 rows)
+
