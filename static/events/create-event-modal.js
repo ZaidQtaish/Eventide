@@ -68,11 +68,29 @@
 
     function parseErrorMessage(raw) {
         if (!raw) return 'Failed to record event.';
+
+        const normalize = (value) => String(value || '').replace(/\s+/g, ' ').trim();
+
+        const humanize = (message) => {
+            const normalized = normalize(message).toLowerCase();
+            if (!normalized) return 'Failed to record event.';
+
+            if (normalized.includes('insufficient stock')) {
+                return 'Not enough stock in the selected warehouse for this event.';
+            }
+
+            if (normalized.includes('quantity_change must be non-zero')) {
+                return 'Quantity must be greater than zero for inbound/outbound events.';
+            }
+
+            return normalize(message);
+        };
+
         try {
             const parsed = JSON.parse(raw);
-            return parsed.error || parsed.message || raw;
+            return humanize(parsed.error || parsed.message || raw);
         } catch {
-            return raw;
+            return humanize(raw);
         }
     }
 

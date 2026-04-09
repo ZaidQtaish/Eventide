@@ -14,6 +14,25 @@
     let currentPage = 1;
     const PAGE_SIZE = 8;
 
+    function parseApiErrorMessage(status, raw) {
+        const text = String(raw || '').replace(/\s+/g, ' ').trim();
+        const lower = text.toLowerCase();
+
+        if (status === 401 || status === 403) {
+            return 'Your session expired. Please log in again.';
+        }
+
+        if (lower.includes('insufficient stock')) {
+            return 'Not enough stock in the selected warehouse.';
+        }
+
+        if (!text) {
+            return status >= 500 ? 'Server error while loading events.' : 'Failed to load events.';
+        }
+
+        return text;
+    }
+
     async function populateFilterOptions() {
         try {
             const [usersRes, warehousesRes] = await Promise.all([
@@ -191,8 +210,17 @@
     async function loadEvents() {
         if (list) list.innerHTML = '<p class="loading">Loading events...</p>';
         const res = await fetch('/api/events');
-        if (!res.ok) throw new Error('Fetch failed');
-        cachedEvents = await res.json();
+
+        if (!res.ok) {
+            const raw = await res.text();
+            throw new Error(parseApiErrorMessage(res.status, raw));
+        }
+
+        const payload = await res.json();
+        if (!Array.isArray(payload)) {
+            throw new Error('Unexpected events response format.');
+        }
+        cachedEvents = payload;
 
         cachedEvents.forEach(evt => {
             if (!evt.item_name && evt.item_id) evt.item_name = `Item #${evt.item_id}`;
