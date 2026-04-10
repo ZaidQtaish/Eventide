@@ -2,6 +2,12 @@
 	const list = document.getElementById('daily-history-list');
 	const startDateInput = document.getElementById('start-date-filter');
 	const endDateInput = document.getElementById('end-date-filter');
+	const dailyFromField = document.getElementById('daily-from-field');
+	const dailyToField = document.getElementById('daily-to-field');
+	const startMonthInput = document.getElementById('start-month-filter');
+	const endMonthInput = document.getElementById('end-month-filter');
+	const monthlyFromField = document.getElementById('monthly-from-field');
+	const monthlyToField = document.getElementById('monthly-to-field');
 	const windowInput = document.getElementById('history-window-filter');
 	const modeDailyBtn = document.getElementById('mode-daily');
 	const modeMonthlyBtn = document.getElementById('mode-monthly');
@@ -60,6 +66,67 @@
 		if (endDateInput) endDateInput.value = today.toISOString().slice(0, 10);
 	}
 
+	function setDefaultMonths() {
+		const today = new Date();
+		const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+		const back = new Date(today.getFullYear(), today.getMonth() - 3, 1);
+		const startMonth = `${back.getFullYear()}-${String(back.getMonth() + 1).padStart(2, '0')}`;
+
+		if (startMonthInput) startMonthInput.value = startMonth;
+		if (endMonthInput) endMonthInput.value = currentMonth;
+	}
+
+	function populateMonthOptions() {
+		if (!startMonthInput || !endMonthInput) return;
+
+		const options = [];
+		const cursor = new Date();
+		cursor.setDate(1);
+
+		for (let i = 0; i < 36; i++) {
+			const value = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}`;
+			const label = cursor.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+			options.push({ value, label });
+			cursor.setMonth(cursor.getMonth() - 1);
+		}
+
+		const renderOptions = (selectEl, placeholder) => {
+			const previousValue = selectEl.value;
+			selectEl.innerHTML = '';
+			const emptyOption = document.createElement('option');
+			emptyOption.value = '';
+			emptyOption.textContent = placeholder;
+			selectEl.appendChild(emptyOption);
+			options.forEach((entry) => {
+				const option = document.createElement('option');
+				option.value = entry.value;
+				option.textContent = entry.label;
+				selectEl.appendChild(option);
+			});
+			if (previousValue && options.some((o) => o.value === previousValue)) {
+				selectEl.value = previousValue;
+			}
+		};
+
+		renderOptions(startMonthInput, 'Start month');
+		renderOptions(endMonthInput, 'End month');
+	}
+
+	function monthStartDate(monthValue) {
+		if (!monthValue) return '';
+		return `${monthValue}-01`;
+	}
+
+	function monthEndDate(monthValue) {
+		if (!monthValue) return '';
+		const [yearStr, monthStr] = monthValue.split('-');
+		const year = Number(yearStr);
+		const month = Number(monthStr);
+		if (!Number.isFinite(year) || !Number.isFinite(month)) return '';
+		const lastDay = new Date(year, month, 0);
+		return `${yearStr}-${monthStr}-${String(lastDay.getDate()).padStart(2, '0')}`;
+	}
+
 	function setModeUI(period) {
 		const isDaily = period === 'daily';
 		currentPeriod = isDaily ? 'daily' : 'monthly';
@@ -75,10 +142,24 @@
 
 		if (startDateInput) {
 			startDateInput.disabled = !isDaily;
+			startDateInput.hidden = !isDaily;
 		}
 		if (endDateInput) {
 			endDateInput.disabled = !isDaily;
+			endDateInput.hidden = !isDaily;
 		}
+		if (dailyFromField) dailyFromField.hidden = !isDaily;
+		if (dailyToField) dailyToField.hidden = !isDaily;
+		if (startMonthInput) {
+			startMonthInput.disabled = isDaily;
+			startMonthInput.hidden = isDaily;
+		}
+		if (endMonthInput) {
+			endMonthInput.disabled = isDaily;
+			endMonthInput.hidden = isDaily;
+		}
+		if (monthlyFromField) monthlyFromField.hidden = isDaily;
+		if (monthlyToField) monthlyToField.hidden = isDaily;
 
 		if (periodPill) {
 			periodPill.textContent = isDaily ? 'Daily' : 'Monthly';
@@ -88,9 +169,15 @@
 			if (!startDateInput?.value || !endDateInput?.value) {
 				setDefaultDates();
 			}
+			if (startMonthInput) startMonthInput.value = '';
+			if (endMonthInput) endMonthInput.value = '';
 		} else {
 			if (startDateInput) startDateInput.value = '';
 			if (endDateInput) endDateInput.value = '';
+			populateMonthOptions();
+			if (!startMonthInput?.value || !endMonthInput?.value) {
+				setDefaultMonths();
+			}
 		}
 	}
 
@@ -283,9 +370,18 @@
 
 		const startDate = (startDateInput?.value || '').trim();
 		const endDate = (endDateInput?.value || '').trim();
+		const startMonth = (startMonthInput?.value || '').trim();
+		const endMonth = (endMonthInput?.value || '').trim();
 
 		if (currentPeriod === 'daily' && (!startDate || !endDate)) {
 			list.innerHTML = '<p class="loading">Start date and end date are required.</p>';
+			updateStats([]);
+			updatePaginationUI(0);
+			return;
+		}
+
+		if (currentPeriod === 'monthly' && ((startMonth && !endMonth) || (!startMonth && endMonth))) {
+			list.innerHTML = '<p class="loading">Select both start and end month, or leave both empty.</p>';
 			updateStats([]);
 			updatePaginationUI(0);
 			return;
@@ -299,6 +395,9 @@
 		if (currentPeriod === 'daily') {
 			params.set('start_date', startDate);
 			params.set('end_date', endDate);
+		} else if (startMonth && endMonth) {
+			params.set('start_date', monthStartDate(startMonth));
+			params.set('end_date', monthEndDate(endMonth));
 		}
 
 		const selectedItem = (itemFilter?.value || '').trim();
@@ -323,7 +422,6 @@
 	function bindEvents() {
 		modeDailyBtn?.addEventListener('click', () => {
 			setModeUI('daily');
-			if (windowInput) windowInput.value = String(defaultWindowByMode.daily);
 			loadStatements().catch((err) => {
 				if (list) list.innerHTML = `<p class="loading">Error loading history: ${err.message}</p>`;
 				updateStats([]);
@@ -333,7 +431,6 @@
 
 		modeMonthlyBtn?.addEventListener('click', () => {
 			setModeUI('monthly');
-			if (windowInput) windowInput.value = String(defaultWindowByMode.monthly);
 			loadStatements().catch((err) => {
 				if (list) list.innerHTML = `<p class="loading">Error loading history: ${err.message}</p>`;
 				updateStats([]);
@@ -353,9 +450,13 @@
 			if (windowInput) windowInput.value = String(defaultWindowByMode[currentPeriod] || 7);
 			if (currentPeriod === 'daily') {
 				setDefaultDates();
+				if (startMonthInput) startMonthInput.value = '';
+				if (endMonthInput) endMonthInput.value = '';
 			} else {
 				if (startDateInput) startDateInput.value = '';
 				if (endDateInput) endDateInput.value = '';
+				populateMonthOptions();
+				setDefaultMonths();
 			}
 			if (itemFilter) itemFilter.value = '';
 			if (warehouseFilter) warehouseFilter.value = '';
@@ -378,8 +479,11 @@
 	}
 
 	async function init() {
+		populateMonthOptions();
 		setModeUI('daily');
 		setDefaultDates();
+		if (startMonthInput) startMonthInput.value = '';
+		if (endMonthInput) endMonthInput.value = '';
 		if (windowInput) windowInput.value = String(defaultWindowByMode.daily);
 		bindEvents();
 		await Promise.all([populateItemsFilter(), populateWarehouseFilter()]);
