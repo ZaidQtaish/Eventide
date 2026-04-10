@@ -8,7 +8,6 @@
 	const endMonthInput = document.getElementById('end-month-filter');
 	const monthlyFromField = document.getElementById('monthly-from-field');
 	const monthlyToField = document.getElementById('monthly-to-field');
-	const windowInput = document.getElementById('history-window-filter');
 	const modeDailyBtn = document.getElementById('mode-daily');
 	const modeMonthlyBtn = document.getElementById('mode-monthly');
 	const periodPill = document.getElementById('history-period-pill');
@@ -30,7 +29,6 @@
 	let currentPage = 1;
 	const PAGE_SIZE = 12;
 	const itemsById = new Map();
-	const defaultWindowByMode = { daily: 7, monthly: 4 };
 	let currentPeriod = 'daily';
 
 	function buildSkuThumb(sku) {
@@ -133,12 +131,6 @@
 
 		modeDailyBtn?.classList.toggle('active', isDaily);
 		modeMonthlyBtn?.classList.toggle('active', !isDaily);
-
-		if (windowInput) {
-			windowInput.min = '1';
-			windowInput.max = isDaily ? '90' : '24';
-			windowInput.placeholder = isDaily ? 'Window (days)' : 'Window (months)';
-		}
 
 		if (startDateInput) {
 			startDateInput.disabled = !isDaily;
@@ -363,11 +355,6 @@
 
 	async function loadStatements() {
 		if (!list) return;
-		const defaultWindow = defaultWindowByMode[currentPeriod] || 7;
-		const inputMax = currentPeriod === 'monthly' ? 24 : 90;
-		const windowValue = Math.min(inputMax, Math.max(1, parseInt(windowInput?.value || String(defaultWindow), 10) || defaultWindow));
-		if (windowInput) windowInput.value = String(windowValue);
-
 		const startDate = (startDateInput?.value || '').trim();
 		const endDate = (endDateInput?.value || '').trim();
 		const startMonth = (startMonthInput?.value || '').trim();
@@ -389,7 +376,6 @@
 
 		const params = new URLSearchParams({
 			period: currentPeriod,
-			window: String(windowValue),
 		});
 
 		if (currentPeriod === 'daily') {
@@ -447,7 +433,6 @@
 		});
 
 		clearFilterBtn?.addEventListener('click', () => {
-			if (windowInput) windowInput.value = String(defaultWindowByMode[currentPeriod] || 7);
 			if (currentPeriod === 'daily') {
 				setDefaultDates();
 				if (startMonthInput) startMonthInput.value = '';
@@ -484,7 +469,6 @@
 		setDefaultDates();
 		if (startMonthInput) startMonthInput.value = '';
 		if (endMonthInput) endMonthInput.value = '';
-		if (windowInput) windowInput.value = String(defaultWindowByMode.daily);
 		bindEvents();
 		await Promise.all([populateItemsFilter(), populateWarehouseFilter()]);
 		await loadStatements();
