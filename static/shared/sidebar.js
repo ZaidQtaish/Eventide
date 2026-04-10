@@ -26,9 +26,9 @@
                 <nav class="sidebar-nav">
                     <a class="sidebar-link ${active === 'dashboard' ? 'active' : ''}" href="/app/">Dashboard</a>
                     <a class="sidebar-link ${active === 'inventory' ? 'active' : ''}" href="/app/inventory/">Inventory</a>
-                    <a class="sidebar-link ${active === 'warehouses' ? 'active' : ''}" href="/app/warehouses/">Warehouses</a>
-                    <a class="sidebar-link ${active === 'forecast' ? 'active' : ''}" href="/app/forecast/">Forecast</a>
                     <a class="sidebar-link ${active === 'history' ? 'active' : ''}" href="/app/history/">History</a>
+                    <a class="sidebar-link ${active === 'forecast' ? 'active' : ''}" href="/app/forecast/">Forecast</a>
+                    <a class="sidebar-link ${active === 'warehouses' ? 'active' : ''}" href="/app/warehouses/">Warehouses</a>
                     <a class="sidebar-link ${active === 'events' ? 'active' : ''}" href="/app/events/">Events</a>
                     ${adminSection}
                 </nav>
