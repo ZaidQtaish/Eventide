@@ -2,6 +2,10 @@
 	const list = document.getElementById('daily-history-list');
 	const startDateInput = document.getElementById('start-date-filter');
 	const endDateInput = document.getElementById('end-date-filter');
+	const windowInput = document.getElementById('history-window-filter');
+	const modeDailyBtn = document.getElementById('mode-daily');
+	const modeMonthlyBtn = document.getElementById('mode-monthly');
+	const periodPill = document.getElementById('history-period-pill');
 	const itemFilter = document.getElementById('item-filter');
 	const warehouseFilter = document.getElementById('warehouse-filter');
 	const applyFilterBtn = document.getElementById('apply-filter');
@@ -20,6 +24,8 @@
 	let currentPage = 1;
 	const PAGE_SIZE = 12;
 	const itemsById = new Map();
+	const defaultWindowByMode = { daily: 7, monthly: 4 };
+	let currentPeriod = 'daily';
 
 	function buildSkuThumb(sku) {
 		const safeSku = String(sku || '').trim();
@@ -54,6 +60,40 @@
 		if (endDateInput) endDateInput.value = today.toISOString().slice(0, 10);
 	}
 
+	function setModeUI(period) {
+		const isDaily = period === 'daily';
+		currentPeriod = isDaily ? 'daily' : 'monthly';
+
+		modeDailyBtn?.classList.toggle('active', isDaily);
+		modeMonthlyBtn?.classList.toggle('active', !isDaily);
+
+		if (windowInput) {
+			windowInput.min = '1';
+			windowInput.max = isDaily ? '90' : '24';
+			windowInput.placeholder = isDaily ? 'Window (days)' : 'Window (months)';
+		}
+
+		if (startDateInput) {
+			startDateInput.disabled = !isDaily;
+		}
+		if (endDateInput) {
+			endDateInput.disabled = !isDaily;
+		}
+
+		if (periodPill) {
+			periodPill.textContent = isDaily ? 'Daily' : 'Monthly';
+		}
+
+		if (isDaily) {
+			if (!startDateInput?.value || !endDateInput?.value) {
+				setDefaultDates();
+			}
+		} else {
+			if (startDateInput) startDateInput.value = '';
+			if (endDateInput) endDateInput.value = '';
+		}
+	}
+
 	function formatDate(raw) {
 		if (!raw) return 'N/A';
 		const d = new Date(raw);
@@ -64,7 +104,20 @@
 		if (!raw) return '';
 		const parsed = new Date(raw);
 		if (Number.isNaN(parsed.getTime())) return String(raw);
+		if (currentPeriod === 'monthly') {
+			return `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, '0')}`;
+		}
 		return parsed.toISOString().slice(0, 10);
+	}
+
+	function formatGroupLabel(raw) {
+		if (!raw) return 'N/A';
+		const d = new Date(raw);
+		if (Number.isNaN(d.getTime())) return String(raw);
+		if (currentPeriod === 'monthly') {
+			return d.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+		}
+		return d.toLocaleDateString(undefined, { dateStyle: 'medium' });
 	}
 
 	function updateStats(rows) {
@@ -137,7 +190,7 @@
 			if (currentDateKey !== previousDateKey) {
 				const separator = document.createElement('div');
 				separator.className = 'day-separator';
-				separator.innerHTML = `<span>${formatDate(row.date)}</span>`;
+				separator.innerHTML = `<span>${formatGroupLabel(row.date)}</span>`;
 				list.appendChild(separator);
 				previousDateKey = currentDateKey;
 			}
@@ -223,10 +276,15 @@
 
 	async function loadStatements() {
 		if (!list) return;
+		const defaultWindow = defaultWindowByMode[currentPeriod] || 7;
+		const inputMax = currentPeriod === 'monthly' ? 24 : 90;
+		const windowValue = Math.min(inputMax, Math.max(1, parseInt(windowInput?.value || String(defaultWindow), 10) || defaultWindow));
+		if (windowInput) windowInput.value = String(windowValue);
+
 		const startDate = (startDateInput?.value || '').trim();
 		const endDate = (endDateInput?.value || '').trim();
 
-		if (!startDate || !endDate) {
+		if (currentPeriod === 'daily' && (!startDate || !endDate)) {
 			list.innerHTML = '<p class="loading">Start date and end date are required.</p>';
 			updateStats([]);
 			updatePaginationUI(0);
@@ -234,9 +292,14 @@
 		}
 
 		const params = new URLSearchParams({
-			start_date: startDate,
-			end_date: endDate,
+			period: currentPeriod,
+			window: String(windowValue),
 		});
+
+		if (currentPeriod === 'daily') {
+			params.set('start_date', startDate);
+			params.set('end_date', endDate);
+		}
 
 		const selectedItem = (itemFilter?.value || '').trim();
 		if (selectedItem) {
@@ -249,7 +312,7 @@
 		}
 
 		list.innerHTML = '<p class="loading">Loading history...</p>';
-		const response = await fetch(`/api/history-statements?${params.toString()}`);
+		const response = await fetch(`/api/history?${params.toString()}`);
 		if (!response.ok) throw new Error(await response.text() || 'Fetch failed');
 
 		cachedRows = await response.json();
@@ -258,6 +321,26 @@
 	}
 
 	function bindEvents() {
+		modeDailyBtn?.addEventListener('click', () => {
+			setModeUI('daily');
+			if (windowInput) windowInput.value = String(defaultWindowByMode.daily);
+			loadStatements().catch((err) => {
+				if (list) list.innerHTML = `<p class="loading">Error loading history: ${err.message}</p>`;
+				updateStats([]);
+				updatePaginationUI(0);
+			});
+		});
+
+		modeMonthlyBtn?.addEventListener('click', () => {
+			setModeUI('monthly');
+			if (windowInput) windowInput.value = String(defaultWindowByMode.monthly);
+			loadStatements().catch((err) => {
+				if (list) list.innerHTML = `<p class="loading">Error loading history: ${err.message}</p>`;
+				updateStats([]);
+				updatePaginationUI(0);
+			});
+		});
+
 		applyFilterBtn?.addEventListener('click', () => {
 			loadStatements().catch((err) => {
 				if (list) list.innerHTML = `<p class="loading">Error loading history: ${err.message}</p>`;
@@ -267,7 +350,13 @@
 		});
 
 		clearFilterBtn?.addEventListener('click', () => {
-			setDefaultDates();
+			if (windowInput) windowInput.value = String(defaultWindowByMode[currentPeriod] || 7);
+			if (currentPeriod === 'daily') {
+				setDefaultDates();
+			} else {
+				if (startDateInput) startDateInput.value = '';
+				if (endDateInput) endDateInput.value = '';
+			}
 			if (itemFilter) itemFilter.value = '';
 			if (warehouseFilter) warehouseFilter.value = '';
 			loadStatements().catch((err) => {
@@ -289,7 +378,9 @@
 	}
 
 	async function init() {
+		setModeUI('daily');
 		setDefaultDates();
+		if (windowInput) windowInput.value = String(defaultWindowByMode.daily);
 		bindEvents();
 		await Promise.all([populateItemsFilter(), populateWarehouseFilter()]);
 		await loadStatements();

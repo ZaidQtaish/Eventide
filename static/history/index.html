@@ -14,10 +14,14 @@
 	<main class="page-content">
 		<section class="dashboard-section">
 			<div class="container">
-				<div class="dashboard-header">
+				<div class="dashboard-header forecast-dashboard-header">
 					<div>
 						<h2>History</h2>
 						<p class="section-subtitle">Inbound and outbound movement by item over time</p>
+					</div>
+					<div class="forecast-mode-toggle" role="group" aria-label="History period">
+						<button id="mode-daily" class="forecast-mode-btn active" type="button" data-period="daily">Daily</button>
+						<button id="mode-monthly" class="forecast-mode-btn" type="button" data-period="monthly">Monthly</button>
 					</div>
 				</div>
 
@@ -45,6 +49,7 @@
 						<h3>Filters</h3>
 					</div>
 					<div class="filter-row filters-with-clear">
+						<input id="history-window-filter" class="form-control" type="number" min="1" max="90" value="7" placeholder="Window (days)" />
 						<input id="start-date-filter" class="form-control" type="date" />
 						<input id="end-date-filter" class="form-control" type="date" />
 						<select id="item-filter" class="form-control">
@@ -63,7 +68,7 @@
 				<div class="panel" style="margin-bottom: 20px;">
 					<div class="panel-header">
 						<h3>Statements</h3>
-						<span class="pill">History</span>
+						<span id="history-period-pill" class="pill">Daily</span>
 					</div>
 					<div id="daily-history-context" class="daily-history-context" hidden></div>
 					<div id="daily-history-list" class="events-container">
@@ -86,7 +91,7 @@
 	</footer>
 
 	<script src="../shared/sidebar.js"></script>
-	<script src="daily-history.js"></script>
+	<script src="history.js"></script>
 </body>
 
 </html>
