@@ -248,8 +248,8 @@
 			params.set('warehouse_code', selectedWarehouse);
 		}
 
-		list.innerHTML = '<p class="loading">Loading daily history...</p>';
-		const response = await fetch(`/api/daily-statements?${params.toString()}`);
+		list.innerHTML = '<p class="loading">Loading history...</p>';
+		const response = await fetch(`/api/history-statements?${params.toString()}`);
 		if (!response.ok) throw new Error(await response.text() || 'Fetch failed');
 
 		cachedRows = await response.json();
@@ -260,7 +260,7 @@
 	function bindEvents() {
 		applyFilterBtn?.addEventListener('click', () => {
 			loadStatements().catch((err) => {
-				if (list) list.innerHTML = `<p class="loading">Error loading daily history: ${err.message}</p>`;
+				if (list) list.innerHTML = `<p class="loading">Error loading history: ${err.message}</p>`;
 				updateStats([]);
 				updatePaginationUI(0);
 			});
@@ -271,7 +271,7 @@
 			if (itemFilter) itemFilter.value = '';
 			if (warehouseFilter) warehouseFilter.value = '';
 			loadStatements().catch((err) => {
-				if (list) list.innerHTML = `<p class="loading">Error loading daily history: ${err.message}</p>`;
+				if (list) list.innerHTML = `<p class="loading">Error loading history: ${err.message}</p>`;
 				updateStats([]);
 				updatePaginationUI(0);
 			});
@@ -296,7 +296,7 @@
 	}
 
 	init().catch((err) => {
-		if (list) list.innerHTML = `<p class="loading">Error loading daily history: ${err.message}</p>`;
+		if (list) list.innerHTML = `<p class="loading">Error loading history: ${err.message}</p>`;
 		updateStats([]);
 		updatePaginationUI(0);
 	});
