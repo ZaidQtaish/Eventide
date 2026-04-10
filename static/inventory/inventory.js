@@ -8,6 +8,10 @@
     const nextPageBtn = document.getElementById('inventory-next-page');
     const pageInfo = document.getElementById('inventory-page-info');
     const inventoryContext = document.getElementById('inventory-context');
+    const statRowsEl = document.getElementById('stock-stat-rows');
+    const statTotalEl = document.getElementById('stock-stat-total');
+    const statLowEl = document.getElementById('stock-stat-low');
+    const statWarehousesEl = document.getElementById('stock-stat-warehouses');
 
     const initialWarehouseParam = (new URLSearchParams(window.location.search).get('warehouse') || '').trim().toLowerCase();
     let cachedRows = [];
@@ -108,10 +112,23 @@
         return true;
     }
 
+    function updateStats(rows) {
+        const totalRows = rows.length;
+        const totalUnits = rows.reduce((sum, row) => sum + Number(row.current_quantity || 0), 0);
+        const lowStockCount = rows.filter((row) => Number(row.current_quantity || 0) <= Number(row.minimum_quantity || 0)).length;
+        const warehouseCount = new Set(rows.map((row) => String(row.warehouse_code || row.warehouse_id || '').trim()).filter(Boolean)).size;
+
+        if (statRowsEl) statRowsEl.textContent = String(totalRows);
+        if (statTotalEl) statTotalEl.textContent = String(totalUnits);
+        if (statLowEl) statLowEl.textContent = String(lowStockCount);
+        if (statWarehousesEl) statWarehousesEl.textContent = String(warehouseCount);
+    }
+
     function render(data) {
         if (!list) return;
         if (!data || data.length === 0) {
             list.innerHTML = '<p class="loading">No stock found.</p>';
+            updateStats([]);
             updateWarehouseContext([]);
             updatePaginationUI(0);
             return;
@@ -120,11 +137,13 @@
         const filtered = data.map(normalizeRow).filter(matchesFilters);
         if (filtered.length === 0) {
             list.innerHTML = '<p class="loading">No matching stock for current filters.</p>';
+            updateStats([]);
             updateWarehouseContext([]);
             updatePaginationUI(0);
             return;
         }
 
+        updateStats(filtered);
         updateWarehouseContext(filtered);
         const hasWarehouseFilter = selectedWarehouseCode() !== '';
 
