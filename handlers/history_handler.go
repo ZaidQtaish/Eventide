@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func (a *App) GetDailyStatementsHandler(w http.ResponseWriter, r *http.Request) {
+func (a *App) GetHistoryHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	startDate := strings.TrimSpace(r.URL.Query().Get("start_date"))
