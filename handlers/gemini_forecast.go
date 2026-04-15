@@ -51,8 +51,8 @@ func generateGeminiNetForecast(ctx context.Context, period, forecastFor string, 
 			"Do not include markdown, comments, or extra keys.\n"+
 			"Context: period=%s, forecast_for=%s, window=%d.\n"+
 			"Use the moving-average baseline rows below to estimate ai_forecast_net for each row.\n"+
-			"Also account for seasonality for the target period (month/day effects, recurring seasonal demand), while keeping adjustments conservative unless baseline strongly suggests otherwise.\n"+
-			"If seasonality signal is weak, stay close to baseline average_net_change.\n"+
+			"Consider seasonality, demand patterns, trends, and anomalies for the target period.\n"+
+			"Make meaningful adjustments (±10-30%% from baseline) when patterns suggest it.\n"+
 			"Baseline rows JSON:\n%s",
 		period,
 		forecastFor,
@@ -83,8 +83,8 @@ func generateGeminiNetForecast(ctx context.Context, period, forecastFor string, 
 	parsed, err := requestGeminiGenerateContent(callCtx, apiKey, model, bodyBytes)
 	if err != nil {
 		// Fallback to a known-good model for this API version when configured model is unsupported.
-		if !strings.Contains(model, "2.5-flash") {
-			parsed, err = requestGeminiGenerateContent(callCtx, apiKey, "gemini-2.5-flash", bodyBytes)
+		if !strings.Contains(model, "3.5-flash") {
+			parsed, err = requestGeminiGenerateContent(callCtx, apiKey, "gemini-3.5-flash", bodyBytes)
 		}
 		if err != nil {
 			return nil, err
