@@ -106,7 +106,7 @@ Eventide must achieve:
 |---|---|---|
 | **Performance** | API responses < 500ms for dashboard | Go concurrency handles this |
 | **Scalability** | Support 100+ warehouses, 10,000+ items | PostgreSQL indexing on warehouse_code, item_id |
-| **Security** | Role-based access, SQL injection prevention | Parameterized queries, session middleware |
+| **Security** | Role-based access, CWE-89 (SQL Injection), CWE-79 (XSS) prevention | Parameterized queries, input validation, bcrypt hashing, session middleware |
 | **Reliability** | No data loss on stock events | Database constraints prevent negative snapshots |
 | **Usability** | Responsive UI, intuitive workflows | Mobile-friendly, accessible date pickers |
 | **Maintainability** | Clean code, documented API | Go handlers well-structured, clear endpoint contracts |
