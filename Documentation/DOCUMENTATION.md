@@ -727,5 +727,5 @@ async function loadInventory(filters) {
 
 ---
 
-**Last Updated:** April 13, 2026  
+**Last Updated:** April 15, 2026  
 **Author:** Zaid Qtaish
