@@ -7,39 +7,108 @@
 
 ### 1.1 Problem Statement
 
-**What problem are you solving?**
-- Why is traditional inventory management difficult?
-- What are the pain points? (Manual errors, lack of real-time tracking, multi-warehouse complexity, etc.)
-- What gaps exist in current solutions?
+**Current Situation:**
 
-*Example: "Traditional spreadsheet-based inventory systems lack real-time multi-warehouse visibility, leading to stock discrepancies and manual reconciliation efforts."*
+Traditional warehouse management systems lack the historical data and analytical capabilities needed for accurate forecasting and multi-location strategic planning. Most warehouses rely on manual spreadsheets or basic database systems that capture only the current state of inventory, discarding historical context and preventing meaningful trend analysis.
+
+**Specific Pain Points:**
+
+1. **No Historical Context** — Spreadsheet-based systems don't preserve inventory history, making it impossible to identify patterns or trends. Forecasting becomes guessing rather than data-driven decision-making.
+
+2. **Multi-Warehouse Blind Spots** — Without centralized visibility, each warehouse location operates in isolation. Stock decisions are made reactively without understanding demand patterns across the entire supply chain.
+
+3. **Poor Forecasting Capability** — Lacking historical data, warehouses cannot predict future demand accurately. This leads to stock-outs (lost sales) and over-ordering (waste and dead inventory).
+
+4. **Performance Bottlenecks** — Manual systems cannot scale to handle complex multi-location operations efficiently, limiting growth and forcing staff to spend time on reconciliation instead of strategy.
+
+5. **Compliance & Accountability** — Without an immutable audit trail of who changed what and when, warehouses struggle to meet compliance requirements and identify discrepancies.
+
+**Business Impact:**
+
+- Stock-outs cause lost revenue and customer dissatisfaction
+- Over-ordering locks up working capital and creates inventory waste
+- Staff spend hours on manual reconciliation instead of strategic planning
+- No data-driven forecasting = reactive, inefficient supply chain management
 
 ### 1.2 Proposed Solution
 
-**Your approach:**
-- What is Eventide?
-- Why is an event-driven architecture better?
-- How does it solve the problem?
+**Eventide: Event-Driven Inventory Management with Forecasting**
 
-*Example: "Eventide is a centralized, event-driven inventory system where every stock change is logged as an immutable event, providing a complete audit trail and enabling accurate historical analysis."*
+Eventide is a centralized, event-sourced inventory system that captures every stock movement as an immutable, timestamped event, creating a complete historical audit trail. This historical data foundation enables two critical capabilities:
+
+1. **Event Sourcing** — Every inventory change (inbound, outbound, adjustment) is recorded as an event, never deleted or overwritten. This provides:
+   - Complete audit trail for compliance
+   - Ability to replay history for reconciliation
+   - Foundation for accurate forecasting
+   - Accountability and traceability
+
+2. **Integrated Forecasting System**
+   - **Moving Average Forecasting** — Short-term demand patterns from recent history
+   - **Gemini AI Integration** — Advanced predictions using Google's AI for inventory optimization
+   - **Multi-Warehouse Analysis** — Cross-location demand pattern recognition
+
+3. **Real-Time Operations**
+   - Centralized dashboard with real-time KPIs (total units, low-stock alerts, warehouse distribution)
+   - Role-based access control (Admin, Manager, Staff)
+   - Scalable architecture supporting 100+ warehouses via Go concurrency and PostgreSQL optimization
 
 ### 1.3 Project Objectives
 
-**What do you aim to achieve?**
-- List 3-5 key objectives (e.g., real-time stock tracking, role-based security, historical forecasting)
-- How will success be measured?
+**Technical Implementation Goals:**
 
-*Example objectives:*
-- ✓ Centralized inventory tracking across multiple warehouses
-- ✓ Event-driven history logging with full audit trail
-- ✓ Role-based access control (Admin, Warehouse Manager, Analyst)
-- ✓ Daily/monthly forecasting with historical data aggregation
-- ✓ Sub-second query performance for dashboard KPIs
+1. **Design Event Log Schema** — Create database structure supporting immutable event capture with proper indexing and integrity.
+
+2. **Implement Event Handlers** — Build Go backend handlers for recording inventory events, computing daily/monthly snapshots, and validating data integrity.
+
+3. **Integrate Gemini AI** — Connect Gemini API for AI-powered forecasting on top of moving average baseline predictions.
+
+4. **Build Frontend Dashboard** — Create responsive web interface with daily/monthly views, real-time KPI cards, and role-based filtering.
+
+5. **Optimize Query Performance** — Ensure sub-500ms response times through database indexing, query optimization, and denormalization strategies.
+
+6. **Implement User Authentication** — Deploy session-based auth with role-based access control (Admin, Manager, Analyst) and secure credential handling.
+
+**Success Metrics:**
+
+- ✓ Zero negative inventory snapshots (database constraints enforced)
+- ✓ Dashboard queries < 500ms for any date range (1000+ events)
+- ✓ History aggregation working for daily and monthly periods
+- ✓ Forecast predictions generated and displayed in UI
+- ✓ Multi-warehouse operations supported without performance degradation
+- ✓ Complete audit trail preserved (no event data loss)
 
 ### 1.4 Scope
 
-- What is **in scope**: Features you implemented
-- What is **out of scope**: Limitations or future work
+**In Scope:**
+
+- Event sourcing architecture with immutable inventory event logging
+- Real-time inventory tracking across multiple warehouses
+- User authentication and role-based access control (Admin, Manager, Analyst)
+- Daily and monthly historical data aggregation
+- Moving average and basic AI forecasting models
+- Real-time KPI dashboard (total units, low-stock count, warehouses)
+- RESTful API endpoints for inventory operations
+- Responsive web interface (desktop and tablet)
+- Complete audit trail for compliance
+
+**Out of Scope:**
+
+- Mobile app development (responsive web only)
+- Machine learning model training on external datasets
+- Supplier integration and automated reordering
+- Advanced predictive analytics (e.g., seasonality adjustments)
+- Multi-company/multi-tenant support
+- Blockchain audit trail
+- Third-party API marketplace
+
+**Future Enhancements:**
+
+- Mobile application (iOS/Android)
+- Email alerts and notifications
+- Advanced forecasting with seasonality detection
+- Supplier integration for automated reorder triggers
+- Inventory optimization recommendations
+- Real-time data synchronization with EDI/ERP systems
 
 ---
 
@@ -689,7 +758,5 @@ async function loadInventory(filters) {
 
 ---
 
-**Document Version:** 1.0  
 **Last Updated:** April 13, 2026  
-**Author:** [Your Name]  
-**Status:** Ready for Submission
+**Author:** Zaid Qtaish
