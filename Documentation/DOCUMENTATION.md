@@ -52,63 +52,33 @@ Eventide is a centralized, event-sourced inventory system that captures every st
    - Role-based access control (Admin, Manager, Staff)
    - Scalable architecture supporting 100+ warehouses via Go concurrency and PostgreSQL optimization
 
-### 1.3 Project Objectives
+### 1.3 Project Requirements
 
-**Technical Implementation Goals:**
+**Functional Requirements:**
 
-1. **Design Event Log Schema** — Create database structure supporting immutable event capture with proper indexing and integrity.
+Eventide must support:
+- User authentication with role-based access (Admin, Manager, Staff)
+- User management — Admins can create, update, and view user accounts with role assignment
+- Warehouse management — View warehouse list; Admins can toggle warehouse status between active/inactive
+- Item management — Create, update, and view items with SKU, description, category, minimum stock, and supplier info
+- Immutable event logging for every inventory change
+- Real-time inventory tracking and filtering across multiple warehouses
+- Daily and monthly historical data aggregation and visualization
+- Forecasting based on moving average and Gemini AI models
+- Low-stock alerts and KPI dashboards
+- RESTful API endpoints for all operations
 
-2. **Implement Event Handlers** — Build Go backend handlers for recording inventory events, computing daily/monthly snapshots, and validating data integrity.
+**Non-Functional Requirements:**
 
-3. **Integrate Gemini AI** — Connect Gemini API for AI-powered forecasting on top of moving average baseline predictions.
+Eventide must achieve:
+- **Performance**: API responses < 500ms for dashboard queries
+- **Scalability**: Support 100+ warehouses and 10,000+ items
+- **Security**: Role-based access control with SQL injection prevention
+- **Reliability**: Zero data loss with database constraints preventing invalid states
+- **Usability**: Responsive design working on desktop and tablet
+- **Auditability**: Complete immutable trail of all inventory changes
 
-4. **Build Frontend Dashboard** — Create responsive web interface with daily/monthly views, real-time KPI cards, and role-based filtering.
-
-5. **Optimize Query Performance** — Ensure sub-500ms response times through database indexing, query optimization, and denormalization strategies.
-
-6. **Implement User Authentication** — Deploy session-based auth with role-based access control (Admin, Manager, Analyst) and secure credential handling.
-
-**Success Metrics:**
-
-- ✓ Zero negative inventory snapshots (database constraints enforced)
-- ✓ Dashboard queries < 500ms for any date range (1000+ events)
-- ✓ History aggregation working for daily and monthly periods
-- ✓ Forecast predictions generated and displayed in UI
-- ✓ Multi-warehouse operations supported without performance degradation
-- ✓ Complete audit trail preserved (no event data loss)
-
-### 1.4 Scope
-
-**In Scope:**
-
-- Event sourcing architecture with immutable inventory event logging
-- Real-time inventory tracking across multiple warehouses
-- User authentication and role-based access control (Admin, Manager, Analyst)
-- Daily and monthly historical data aggregation
-- Moving average and basic AI forecasting models
-- Real-time KPI dashboard (total units, low-stock count, warehouses)
-- RESTful API endpoints for inventory operations
-- Responsive web interface (desktop and tablet)
-- Complete audit trail for compliance
-
-**Out of Scope:**
-
-- Mobile app development (responsive web only)
-- Machine learning model training on external datasets
-- Supplier integration and automated reordering
-- Advanced predictive analytics (e.g., seasonality adjustments)
-- Multi-company/multi-tenant support
-- Blockchain audit trail
-- Third-party API marketplace
-
-**Future Enhancements:**
-
-- Mobile application (iOS/Android)
-- Email alerts and notifications
-- Advanced forecasting with seasonality detection
-- Supplier integration for automated reorder triggers
-- Inventory optimization recommendations
-- Real-time data synchronization with EDI/ERP systems
+*Detailed requirements specifications are provided in Chapter 2.*
 
 ---
 
@@ -121,15 +91,14 @@ Eventide is a centralized, event-sourced inventory system that captures every st
 | ID | Requirement | Description |
 |---|---|---|
 | FR1 | User Authentication | Users must log in with credentials; session validation required |
-| FR2 | Warehouse Management | Admins must create, update, and delete warehouses |
-| FR3 | Item Inventory | Users must view and filter items by warehouse, status, and quantity |
-| FR4 | Event Logging | Every stock change must create an immutable event record |
-| FR5 | History Tracking | Users must view daily/monthly historical snapshots |
-| FR6 | Forecasting | System must project stock levels based on historical trends |
-| FR7 | Low-Stock Alerts | System must identify items below minimum quantity |
-| FR8 | KPI Dashboard | Users must see real-time statistics (total units, low stock count, etc.) |
-
-*Add more based on your actual implementation*
+| FR2 | User Management | Admins must create, update, and view user accounts with role assignment |
+| FR3 | Warehouse Management | All users can view warehouses; Admins can toggle status between active/inactive |
+| FR4 | Item Management | Admins/Managers must create, update, and view items (name, SKU, description, category, minimum stock, supplier) |
+| FR5 | Event Logging | Every stock change must create an immutable event record |
+| FR6 | History Tracking | Users must view daily/monthly historical snapshots and event logs |
+| FR7 | Forecasting | System must project stock levels based on moving average and AI models |
+| FR8 | Low-Stock Alerts | System must identify items below minimum quantity and highlight in UI |
+| FR9 | KPI Dashboard | Users must see real-time statistics (total units, low stock count, active/inactive warehouses)
 
 ### 2.2 Non-Functional Requirements
 
