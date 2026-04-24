@@ -59,10 +59,10 @@ func generateGeminiNetForecast(ctx context.Context, period, forecastFor string, 
 		string(inputJSON),
 	)
 
-	reqBody := openAIRequest{
+	reqBody := chatRequest{
 		Model:       model,
 		Temperature: 0.2,
-		Messages: []openAIMessage{
+		Messages: []chatMessage{
 			{Role: "user", Content: prompt},
 		},
 	}
@@ -106,8 +106,8 @@ func generateGeminiNetForecast(ctx context.Context, period, forecastFor string, 
 	return out, nil
 }
 
-func requestGitHubGenerateContent(ctx context.Context, apiKey string, bodyBytes []byte) (openAIResponse, error) {
-	var parsed openAIResponse
+func requestGitHubGenerateContent(ctx context.Context, apiKey string, bodyBytes []byte) (chatResponse, error) {
+	var parsed chatResponse
 	url := "https://models.inference.ai.azure.com/chat/completions"
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(bodyBytes))
 	if err != nil {

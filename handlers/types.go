@@ -138,18 +138,18 @@ type forecastRow struct {
 	AIForecastNet float64 `json:"ai_forecast_net"`
 }
 
-type openAIMessage struct {
+type chatMessage struct {
 	Role    string `json:"role"`
 	Content string `json:"content"`
 }
 
-type openAIRequest struct {
-	Model       string          `json:"model"`
-	Messages    []openAIMessage `json:"messages"`
-	Temperature float32         `json:"temperature,omitempty"`
+type chatRequest struct {
+	Model       string        `json:"model"`
+	Messages    []chatMessage `json:"messages"`
+	Temperature float32       `json:"temperature,omitempty"`
 }
 
-type openAIResponse struct {
+type chatResponse struct {
 	Choices []struct {
 		Message struct {
 			Content string `json:"content"`
