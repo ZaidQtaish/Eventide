@@ -110,7 +110,7 @@ func (a *App) GetForecastHandler(w http.ResponseWriter, r *http.Request) {
 
 	if includeAI {
 		// Best-effort AI enrichment; baseline forecast still returns if AI is unavailable.
-		aiByKey, err := generateGeminiNetForecast(ctx, period, forecastFor, window, forecasts)
+		aiByKey, err := generateClaudeNetForecast(ctx, period, forecastFor, window, forecasts)
 		if err == nil && len(aiByKey) > 0 {
 			for i := range forecasts {
 				key := forecastKey(forecasts[i].ItemID, forecasts[i].WarehouseID)

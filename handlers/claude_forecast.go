@@ -16,7 +16,7 @@ func forecastKey(itemID, warehouseID int) string {
 	return fmt.Sprintf("%d|%d", itemID, warehouseID)
 }
 
-func generateGeminiNetForecast(ctx context.Context, period, forecastFor string, window int, forecasts []MovingAverage) (map[string]float64, error) {
+func generateClaudeNetForecast(ctx context.Context, period, forecastFor string, window int, forecasts []MovingAverage) (map[string]float64, error) {
 	apiKey := strings.TrimSpace(os.Getenv("GITHUB_API_KEY"))
 	if apiKey == "" || len(forecasts) == 0 {
 		return nil, nil
@@ -91,7 +91,7 @@ func generateGeminiNetForecast(ctx context.Context, period, forecastFor string, 
 
 	rowsJSON := extractJSONArray(text)
 	if rowsJSON == "" {
-		return nil, fmt.Errorf("gemini returned non-json output")
+		return nil, fmt.Errorf("claude returned non-json output")
 	}
 
 	var rows []forecastRow

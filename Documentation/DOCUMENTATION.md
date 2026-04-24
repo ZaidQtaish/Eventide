@@ -44,7 +44,7 @@ Eventide is a centralized, event-sourced inventory system that captures every st
 
 2. **Integrated Forecasting System**
    - **Moving Average Forecasting** — Short-term demand patterns from recent history
-   - **Gemini AI Integration** — Advanced predictions using Google's AI for inventory optimization
+   - **Claude AI Integration** — Advanced predictions using Anthropic's Claude for inventory optimization
    - **Multi-Warehouse Analysis** — Cross-location demand pattern recognition
 
 3. **Real-Time Operations**
@@ -64,7 +64,7 @@ Eventide must support:
 - Immutable event logging for every inventory change
 - Real-time inventory tracking and filtering across multiple warehouses
 - Daily and monthly historical data aggregation and visualization
-- Forecasting based on moving average and Gemini AI models
+- Forecasting based on moving average and Claude AI models
 - Low-stock alerts and KPI dashboards
 - RESTful API endpoints for all operations
 
