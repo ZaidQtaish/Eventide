@@ -3,11 +3,13 @@
     const queryInput = document.getElementById('item-search-filter');
     const categoryFilterInput = document.getElementById('item-category-filter');
     const clearFilter = document.getElementById('clear-filter');
+    const exportBtn = document.getElementById('export-items-csv');
     const prevPageBtn = document.getElementById('items-prev-page');
     const nextPageBtn = document.getElementById('items-next-page');
     const pageInfo = document.getElementById('items-page-info');
 
     let cachedItems = [];
+    let displayedItems = [];
     let currentPage = 1;
     const PAGE_SIZE = 12;
     let itemModalApi = null;
@@ -86,12 +88,14 @@
         if (!list) return;
 
         if (!items || items.length === 0) {
+            displayedItems = [];
             list.innerHTML = '<p class="loading">No items found.</p>';
             updatePaginationUI(0);
             return;
         }
 
         const filtered = items.filter(matchesFilter);
+        displayedItems = filtered;
         if (filtered.length === 0) {
             list.innerHTML = '<p class="loading">No matching items for current filter.</p>';
             updatePaginationUI(0);
@@ -132,6 +136,27 @@
         updatePaginationUI(totalPages);
     }
 
+    function exportItemsCsv() {
+        if (!window.EventideExport || typeof window.EventideExport.exportCsv !== 'function') return;
+
+        const exportedAtLocal = new Date().toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+        const dateStamp = new Date().toISOString().slice(0, 10);
+        window.EventideExport.exportCsv({
+            filename: `items-${dateStamp}.csv`,
+            columns: [
+                { header: 'Exported At (Local)', value: () => exportedAtLocal },
+                { header: 'Item ID', value: (item) => item.item_id ?? '' },
+                { header: 'Name', value: (item) => item.name ?? '' },
+                { header: 'SKU', value: (item) => item.sku ?? '' },
+                { header: 'Category', value: (item) => item.category ?? '' },
+                { header: 'Minimum Stock', value: (item) => Number.isFinite(item.minimum_stock) ? item.minimum_stock : '' },
+                { header: 'Description', value: (item) => item.description ?? '' },
+                { header: 'Supplier ID', value: (item) => item.supplier_id ?? '' },
+            ],
+            rows: displayedItems,
+        });
+    }
+
     async function loadItems() {
         if (list) list.innerHTML = '<p class="loading">Loading items...</p>';
         const res = await fetch('/api/items');
@@ -156,6 +181,8 @@
             if (categoryFilterInput) categoryFilterInput.value = '';
             rerenderFromFirstPage();
         });
+
+        exportBtn?.addEventListener('click', exportItemsCsv);
 
         prevPageBtn?.addEventListener('click', () => {
             currentPage -= 1;

@@ -42,7 +42,10 @@
                 <div class="panel" style="margin-bottom: 20px;">
                     <div class="panel-header">
                         <h3>Items</h3>
-                        <span class="pill">Catalog</span>
+                        <div class="panel-header-badges">
+                            <span class="pill">Catalog</span>
+                            <button id="export-items-csv" class="cta-btn ghost panel-badge-btn" type="button">Export CSV</button>
+                        </div>
                     </div>
                     <div id="items-list" class="events-container">
                         <p class="loading">Loading items...</p>
@@ -119,6 +122,7 @@
         </div>
     </footer>
     <script src="../shared/sidebar.js"></script>
+    <script src="../shared/export-utils.js"></script>
     <script src="item-modal.js"></script>
     <script src="items.js"></script>
 </body>
