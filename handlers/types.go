@@ -100,7 +100,8 @@ type MovingAverage struct {
 	AverageInQuantity  float64  `json:"average_in_quantity"`
 	AverageOutQuantity float64  `json:"average_out_quantity"`
 	AverageNetChange   float64  `json:"average_net_change"`
-	AIForecastNet      *float64 `json:"ai_forecast_net,omitempty"`
+	AIForecastIn       *float64 `json:"ai_forecast_in,omitempty"`
+	AIForecastOut      *float64 `json:"ai_forecast_out,omitempty"`
 }
 
 type ForecastResponse struct {
@@ -135,7 +136,13 @@ type monthlyAccumulator struct {
 type forecastRow struct {
 	ItemID        int     `json:"item_id"`
 	WarehouseID   int     `json:"warehouse_id"`
-	AIForecastNet float64 `json:"ai_forecast_net"`
+	AIForecastIn  float64 `json:"ai_forecast_in"`
+	AIForecastOut float64 `json:"ai_forecast_out"`
+}
+
+type aiForecastValues struct {
+	In  float64
+	Out float64
 }
 
 type chatMessage struct {

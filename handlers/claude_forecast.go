@@ -17,7 +17,7 @@ func forecastKey(itemID, warehouseID int) string {
 	return fmt.Sprintf("%d|%d", itemID, warehouseID)
 }
 
-func generateClaudeNetForecast(ctx context.Context, period, forecastFor string, window int, forecasts []MovingAverage) (map[string]float64, error) {
+func generateClaudeNetForecast(ctx context.Context, period, forecastFor string, window int, forecasts []MovingAverage) (map[string]aiForecastValues, error) {
 	apiKey := strings.TrimSpace(os.Getenv("GITHUB_API_KEY"))
 	if apiKey == "" || len(forecasts) == 0 {
 		return nil, nil
@@ -47,12 +47,13 @@ func generateClaudeNetForecast(ctx context.Context, period, forecastFor string, 
 	}
 
 	prompt := fmt.Sprintf(
-		"You are assisting inventory forecasting. Return ONLY strict JSON array with objects: item_id (int), warehouse_id (int), ai_forecast_net (number).\n"+
+		"You are assisting inventory forecasting. Return ONLY strict JSON array with objects: item_id (int), warehouse_id (int), ai_forecast_in (number), ai_forecast_out (number).\n"+
 			"Do not include markdown, comments, or extra keys.\n"+
 			"Context: period=%s, forecast_for=%s, window=%d.\n"+
-			"For each row, the baseline forecast is the 'average_net_change' value.\n"+
-			"YOUR FORECAST ai_forecast_net should be within ±50%% of the baseline average_net_change.\n"+
-			"Example: if average_net_change is 100, your forecast should typically be between 50 and 150.\n"+
+			"For each row, forecast the inbound and outbound quantities separately.\n"+
+			"- ai_forecast_in should be within ±50%% of average_in_quantity\n"+
+			"- ai_forecast_out should be within ±50%% of average_out_quantity\n"+
+			"Example: if average_in_quantity is 100, your forecast should typically be between 50 and 150.\n"+
 			"Adjust for seasonality, demand patterns, trends, and anomalies for the target period.\n"+
 			"Make meaningful, justified adjustments based on the data patterns you observe.\n"+
 			"Baseline rows JSON:\n%s",
@@ -102,30 +103,42 @@ func generateClaudeNetForecast(ctx context.Context, period, forecastFor string, 
 		return nil, err
 	}
 
-	out := make(map[string]float64, len(rows))
+	out := make(map[string]aiForecastValues, len(rows))
 
-	// Create a map of baseline values for validation
-	baselineMap := make(map[string]float64)
+	// Create maps of baseline values for validation
+	baselineInMap := make(map[string]float64)
+	baselineOutMap := make(map[string]float64)
 	for _, row := range forecasts {
 		key := forecastKey(row.ItemID, row.WarehouseID)
-		baselineMap[key] = row.AverageNetChange
+		baselineInMap[key] = row.AverageInQuantity
+		baselineOutMap[key] = row.AverageOutQuantity
 	}
 
 	for _, row := range rows {
-		forecast := row.AIForecastNet
+		forecastIn := row.AIForecastIn
+		forecastOut := row.AIForecastOut
 		key := forecastKey(row.ItemID, row.WarehouseID)
 
-		// Clamp forecast to ±75% of baseline (safety constraint to prevent wild outliers)
-		if baseline, exists := baselineMap[key]; exists {
-			maxDev := math.Abs(baseline) * 0.75
-			if forecast > baseline+maxDev {
-				forecast = baseline + maxDev
-			} else if forecast < baseline-maxDev {
-				forecast = baseline - maxDev
+		// Clamp forecasts to ±75% of baseline (safety constraint to prevent wild outliers)
+		if baselineIn, exists := baselineInMap[key]; exists {
+			maxDevIn := math.Abs(baselineIn) * 0.75
+			if forecastIn > baselineIn+maxDevIn {
+				forecastIn = baselineIn + maxDevIn
+			} else if forecastIn < baselineIn-maxDevIn {
+				forecastIn = baselineIn - maxDevIn
 			}
 		}
 
-		out[key] = forecast
+		if baselineOut, exists := baselineOutMap[key]; exists {
+			maxDevOut := math.Abs(baselineOut) * 0.75
+			if forecastOut > baselineOut+maxDevOut {
+				forecastOut = baselineOut + maxDevOut
+			} else if forecastOut < baselineOut-maxDevOut {
+				forecastOut = baselineOut - maxDevOut
+			}
+		}
+
+		out[key] = aiForecastValues{In: forecastIn, Out: forecastOut}
 	}
 	return out, nil
 }

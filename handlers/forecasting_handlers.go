@@ -114,9 +114,11 @@ func (a *App) GetForecastHandler(w http.ResponseWriter, r *http.Request) {
 		if err == nil && len(aiByKey) > 0 {
 			for i := range forecasts {
 				key := forecastKey(forecasts[i].ItemID, forecasts[i].WarehouseID)
-				if aiNet, ok := aiByKey[key]; ok {
-					v := aiNet
-					forecasts[i].AIForecastNet = &v
+				if aiValues, ok := aiByKey[key]; ok {
+					in := aiValues.In
+					out := aiValues.Out
+					forecasts[i].AIForecastIn = &in
+					forecasts[i].AIForecastOut = &out
 				}
 			}
 		}
