@@ -422,6 +422,30 @@ a {
     border-bottom: none;
 }
 
+.forecast-table .separator-col {
+    width: 1px;
+    background: var(--border);
+    padding: 0;
+    border: none;
+}
+
+.forecast-table thead th:nth-child(2)::after,
+.forecast-table tbody td:nth-child(2)::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--border);
+}
+
+.forecast-table thead th:nth-child(2),
+.forecast-table tbody td:nth-child(2) {
+    position: relative;
+    padding-right: 28px;
+}
+
 .forecast-net {
     display: inline-flex;
     min-width: 72px;

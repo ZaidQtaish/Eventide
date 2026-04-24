@@ -18,10 +18,8 @@ func forecastKey(itemID, warehouseID int) string {
 }
 
 func generateClaudeNetForecast(ctx context.Context, period, forecastFor string, window int, forecasts []MovingAverage) (map[string]float64, error) {
-	fmt.Println("[DEBUG] generateClaudeNetForecast called")
 	apiKey := strings.TrimSpace(os.Getenv("GITHUB_API_KEY"))
 	if apiKey == "" || len(forecasts) == 0 {
-		fmt.Printf("[DEBUG] Early return: apiKey empty=%v, forecasts empty=%v\n", apiKey == "", len(forecasts) == 0)
 		return nil, nil
 	}
 
@@ -80,10 +78,8 @@ func generateClaudeNetForecast(ctx context.Context, period, forecastFor string, 
 	callCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	fmt.Println("[DEBUG] Calling GitHub Models API...")
 	parsed, err := requestGitHubGenerateContent(callCtx, apiKey, bodyBytes)
 	if err != nil {
-		fmt.Printf("[DEBUG] API Error: %v\n", err)
 		return nil, err
 	}
 
@@ -92,16 +88,12 @@ func generateClaudeNetForecast(ctx context.Context, period, forecastFor string, 
 		text = parsed.Choices[0].Message.Content
 	}
 	text = strings.TrimSpace(text)
-	fmt.Printf("[DEBUG] Raw response text: %s\n", text)
 	if text == "" {
-		fmt.Println("[DEBUG] Empty response from API")
 		return nil, nil
 	}
 
 	rowsJSON := extractJSONArray(text)
-	fmt.Printf("[DEBUG] Extracted JSON: %s\n", rowsJSON)
 	if rowsJSON == "" {
-		fmt.Printf("[DEBUG] Failed to extract JSON from: %s\n", text)
 		return nil, fmt.Errorf("claude returned non-json output")
 	}
 
@@ -110,7 +102,6 @@ func generateClaudeNetForecast(ctx context.Context, period, forecastFor string, 
 		return nil, err
 	}
 
-	fmt.Printf("[DEBUG] Parsed %d forecast rows\n", len(rows))
 	out := make(map[string]float64, len(rows))
 
 	// Create a map of baseline values for validation
@@ -128,17 +119,12 @@ func generateClaudeNetForecast(ctx context.Context, period, forecastFor string, 
 		if baseline, exists := baselineMap[key]; exists {
 			maxDev := math.Abs(baseline) * 0.75
 			if forecast > baseline+maxDev {
-				fmt.Printf("[DEBUG] Clamping item_id=%d, warehouse_id=%d: %v -> %v (baseline=%v, max_dev=±%v)\n",
-					row.ItemID, row.WarehouseID, forecast, baseline+maxDev, baseline, maxDev)
 				forecast = baseline + maxDev
 			} else if forecast < baseline-maxDev {
-				fmt.Printf("[DEBUG] Clamping item_id=%d, warehouse_id=%d: %v -> %v (baseline=%v, max_dev=±%v)\n",
-					row.ItemID, row.WarehouseID, forecast, baseline-maxDev, baseline, maxDev)
 				forecast = baseline - maxDev
 			}
 		}
 
-		fmt.Printf("[DEBUG] Forecast: item_id=%d, warehouse_id=%d, ai_forecast_net=%v\n", row.ItemID, row.WarehouseID, forecast)
 		out[key] = forecast
 	}
 	return out, nil
@@ -154,44 +140,34 @@ func requestGitHubGenerateContent(ctx context.Context, apiKey string, bodyBytes 
 	httpReq.Header.Set("Content-Type", "application/json")
 	httpReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiKey))
 
-	fmt.Printf("[DEBUG] Sending request to %s\n", url)
 	resp, err := http.DefaultClient.Do(httpReq)
 	if err != nil {
-		fmt.Printf("[DEBUG] HTTP request error: %v\n", err)
 		return parsed, err
 	}
 	defer resp.Body.Close()
 
-	fmt.Printf("[DEBUG] Response status: %d\n", resp.StatusCode)
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		respBody, _ := io.ReadAll(resp.Body)
-		fmt.Printf("[DEBUG] Error response body: %s\n", string(respBody))
 		return parsed, fmt.Errorf("github models request failed: %s", strings.TrimSpace(string(respBody)))
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&parsed); err != nil {
-		fmt.Printf("[DEBUG] JSON decode error: %v\n", err)
 		return parsed, err
 	}
 
-	fmt.Printf("[DEBUG] Successfully decoded response, choices count: %d\n", len(parsed.Choices))
 	return parsed, nil
 }
 
 func extractJSONArray(s string) string {
 	s = strings.TrimSpace(s)
-	fmt.Printf("[DEBUG] extractJSONArray input (first 500 chars): %.500s\n", s)
 	s = strings.TrimPrefix(s, "```")
 	s = strings.TrimPrefix(s, "json")
 	s = strings.TrimSpace(strings.TrimSuffix(s, "```"))
 
 	start := strings.Index(s, "[")
 	end := strings.LastIndex(s, "]")
-	fmt.Printf("[DEBUG] extractJSONArray: start=%d, end=%d\n", start, end)
 	if start == -1 || end == -1 || end < start {
 		return ""
 	}
-	result := s[start : end+1]
-	fmt.Printf("[DEBUG] extractJSONArray result (first 500 chars): %.500s\n", result)
-	return result
+	return s[start : end+1]
 }

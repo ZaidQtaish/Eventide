@@ -39,6 +39,18 @@
         return parsed === 0 ? null : parsed;
     }
 
+    function getAIForecastIn(row) {
+        const value = row.ai_forecast_in;
+        if (value === undefined || value === null) return null;
+        return toNumber(value, 0);
+    }
+
+    function getAIForecastOut(row) {
+        const value = row.ai_forecast_out;
+        if (value === undefined || value === null) return null;
+        return toNumber(value, 0);
+    }
+
     function forecastRowKey(row) {
         const itemId = row.item_id ?? '';
         const warehouseId = row.warehouse_id ?? '';
@@ -96,7 +108,7 @@
         const { aiLoading = false } = options;
 
         if (!rows.length) {
-            tableBody.innerHTML = '<tr><td colspan="6" class="loading">No forecast rows found for current filters.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="9" class="loading">No forecast rows found for current filters.</td></tr>';
             return;
         }
 
@@ -107,12 +119,31 @@
             const avgOut = toNumber(row.average_out_quantity, 0);
             const avgNet = getAverageNet(row);
             const netClass = avgNet >= 0 ? 'forecast-net-up' : 'forecast-net-down';
-            const aiForecast = getAIForecast(row);
-            let aiHtml = '—';
-            if (aiForecast !== null) {
-                aiHtml = `<span class="forecast-net ${aiForecast >= 0 ? 'forecast-net-up' : 'forecast-net-down'}">${aiForecast >= 0 ? '+' : ''}${aiForecast.toFixed(0)}</span>`;
-            } else if (aiLoading) {
-                aiHtml = '<span class="loading">Loading...</span>';
+
+            // AI forecast values
+            const aiIn = getAIForecastIn(row);
+            const aiOut = getAIForecastOut(row);
+            const aiNet = aiIn !== null && aiOut !== null ? aiIn - aiOut : null;
+
+            let aiInHtml = '—';
+            let aiOutHtml = '—';
+            let aiNetHtml = '—';
+
+            if (aiLoading) {
+                aiInHtml = '<span class="loading">Loading...</span>';
+                aiOutHtml = '<span class="loading">Loading...</span>';
+                aiNetHtml = '<span class="loading">Loading...</span>';
+            } else {
+                if (aiIn !== null) {
+                    aiInHtml = `<span class="forecast-value">${aiIn >= 0 ? '+' : ''}${aiIn.toFixed(0)}</span>`;
+                }
+                if (aiOut !== null) {
+                    aiOutHtml = `<span class="forecast-value">${aiOut >= 0 ? '+' : ''}${aiOut.toFixed(0)}</span>`;
+                }
+                if (aiNet !== null) {
+                    const aiNetClass = aiNet >= 0 ? 'forecast-net-up' : 'forecast-net-down';
+                    aiNetHtml = `<span class="forecast-net ${aiNetClass}">${aiNet >= 0 ? '+' : ''}${aiNet.toFixed(0)}</span>`;
+                }
             }
 
             return `
@@ -122,7 +153,10 @@
                     <td>${avgIn.toFixed(0)}</td>
                     <td>${avgOut.toFixed(0)}</td>
                     <td><span class="forecast-net ${netClass}">${avgNet >= 0 ? '+' : ''}${avgNet.toFixed(0)}</span></td>
-                    <td>${aiHtml}</td>
+                    <td class="separator-col"></td>
+                    <td>${aiInHtml}</td>
+                    <td>${aiOutHtml}</td>
+                    <td>${aiNetHtml}</td>
                 </tr>
             `;
         }).join('');
