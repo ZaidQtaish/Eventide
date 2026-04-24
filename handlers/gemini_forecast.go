@@ -17,16 +17,15 @@ func forecastKey(itemID, warehouseID int) string {
 }
 
 func generateGeminiNetForecast(ctx context.Context, period, forecastFor string, window int, forecasts []MovingAverage) (map[string]float64, error) {
-	apiKey := strings.TrimSpace(os.Getenv("GEMINI_API_KEY"))
+	apiKey := strings.TrimSpace(os.Getenv("GITHUB_API_KEY"))
 	if apiKey == "" || len(forecasts) == 0 {
 		return nil, nil
 	}
 
-	model := strings.TrimSpace(os.Getenv("GEMINI_MODEL"))
+	model := strings.TrimSpace(os.Getenv("GITHUB_MODEL"))
 	if model == "" {
-		model = "gemini-2.5-flash"
+		model = "claude-haiku-4.5"
 	}
-	model = strings.TrimPrefix(model, "models/")
 
 	input := make([]map[string]any, 0, len(forecasts))
 	for _, row := range forecasts {
@@ -60,17 +59,13 @@ func generateGeminiNetForecast(ctx context.Context, period, forecastFor string, 
 		string(inputJSON),
 	)
 
-	var reqBody geminiRequest
-	reqBody.Contents = append(reqBody.Contents, struct {
-		Parts []struct {
-			Text string `json:"text"`
-		} `json:"parts"`
-	}{
-		Parts: []struct {
-			Text string `json:"text"`
-		}{{Text: prompt}},
-	})
-	reqBody.GenerationConfig = map[string]any{"temperature": 0.2}
+	reqBody := openAIRequest{
+		Model:       model,
+		Temperature: 0.2,
+		Messages: []openAIMessage{
+			{Role: "user", Content: prompt},
+		},
+	}
 
 	bodyBytes, err := json.Marshal(reqBody)
 	if err != nil {
@@ -80,22 +75,14 @@ func generateGeminiNetForecast(ctx context.Context, period, forecastFor string, 
 	callCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	parsed, err := requestGeminiGenerateContent(callCtx, apiKey, model, bodyBytes)
+	parsed, err := requestGitHubGenerateContent(callCtx, apiKey, bodyBytes)
 	if err != nil {
-		// Fallback to a known-good model for this API version when configured model is unsupported.
-		if !strings.Contains(model, "3.5-flash") {
-			parsed, err = requestGeminiGenerateContent(callCtx, apiKey, "gemini-3.5-flash", bodyBytes)
-		}
-		if err != nil {
-			return nil, err
-		}
+		return nil, err
 	}
 
 	text := ""
-	if len(parsed.Candidates) > 0 {
-		for _, part := range parsed.Candidates[0].Content.Parts {
-			text += part.Text
-		}
+	if len(parsed.Choices) > 0 {
+		text = parsed.Choices[0].Message.Content
 	}
 	text = strings.TrimSpace(text)
 	if text == "" {
@@ -107,7 +94,7 @@ func generateGeminiNetForecast(ctx context.Context, period, forecastFor string, 
 		return nil, fmt.Errorf("gemini returned non-json output")
 	}
 
-	var rows []geminiRow
+	var rows []forecastRow
 	if err := json.Unmarshal([]byte(rowsJSON), &rows); err != nil {
 		return nil, err
 	}
@@ -119,14 +106,15 @@ func generateGeminiNetForecast(ctx context.Context, period, forecastFor string, 
 	return out, nil
 }
 
-func requestGeminiGenerateContent(ctx context.Context, apiKey, model string, bodyBytes []byte) (geminiResponse, error) {
-	var parsed geminiResponse
-	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s", model, apiKey)
+func requestGitHubGenerateContent(ctx context.Context, apiKey string, bodyBytes []byte) (openAIResponse, error) {
+	var parsed openAIResponse
+	url := "https://models.inference.ai.azure.com/chat/completions"
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(bodyBytes))
 	if err != nil {
 		return parsed, err
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
+	httpReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiKey))
 
 	resp, err := http.DefaultClient.Do(httpReq)
 	if err != nil {
@@ -136,7 +124,7 @@ func requestGeminiGenerateContent(ctx context.Context, apiKey, model string, bod
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		respBody, _ := io.ReadAll(resp.Body)
-		return parsed, fmt.Errorf("gemini request failed: %s", strings.TrimSpace(string(respBody)))
+		return parsed, fmt.Errorf("github models request failed: %s", strings.TrimSpace(string(respBody)))
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&parsed); err != nil {

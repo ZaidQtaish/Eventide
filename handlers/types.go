@@ -132,27 +132,27 @@ type monthlyAccumulator struct {
 	out int
 }
 
-type geminiRow struct {
+type forecastRow struct {
 	ItemID        int     `json:"item_id"`
 	WarehouseID   int     `json:"warehouse_id"`
 	AIForecastNet float64 `json:"ai_forecast_net"`
 }
 
-type geminiRequest struct {
-	Contents []struct {
-		Parts []struct {
-			Text string `json:"text"`
-		} `json:"parts"`
-	} `json:"contents"`
-	GenerationConfig map[string]any `json:"generationConfig,omitempty"`
+type openAIMessage struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
 }
 
-type geminiResponse struct {
-	Candidates []struct {
-		Content struct {
-			Parts []struct {
-				Text string `json:"text"`
-			} `json:"parts"`
-		} `json:"content"`
-	} `json:"candidates"`
+type openAIRequest struct {
+	Model       string          `json:"model"`
+	Messages    []openAIMessage `json:"messages"`
+	Temperature float32         `json:"temperature,omitempty"`
+}
+
+type openAIResponse struct {
+	Choices []struct {
+		Message struct {
+			Content string `json:"content"`
+		} `json:"message"`
+	} `json:"choices"`
 }
