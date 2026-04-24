@@ -15,6 +15,7 @@
 	const warehouseFilter = document.getElementById('warehouse-filter');
 	const applyFilterBtn = document.getElementById('apply-filter');
 	const clearFilterBtn = document.getElementById('clear-filter');
+	const exportBtn = document.getElementById('export-history-csv');
 	const prevPageBtn = document.getElementById('history-prev-page');
 	const nextPageBtn = document.getElementById('history-next-page');
 	const pageInfo = document.getElementById('history-page-info');
@@ -26,6 +27,7 @@
 	const statNetEl = document.getElementById('stat-history-net');
 
 	let cachedRows = [];
+	let displayedRows = [];
 	let currentPage = 1;
 	const PAGE_SIZE = 12;
 	const itemsById = new Map();
@@ -243,6 +245,7 @@
 	function render(rows) {
 		if (!list) return;
 		const hasWarehouseFilter = selectedWarehouseCode() !== '';
+		displayedRows = Array.isArray(rows) ? rows : [];
 
 		if (!rows || rows.length === 0) {
 			list.innerHTML = '<p class="loading">No statements for selected filters.</p>';
@@ -304,6 +307,27 @@
 		});
 
 		updatePaginationUI(totalPages);
+	}
+
+	function exportHistoryCsv() {
+		if (!window.EventideExport || typeof window.EventideExport.exportCsv !== 'function') return;
+
+		const dateStamp = new Date().toISOString().slice(0, 10);
+		window.EventideExport.exportCsv({
+			filename: `history-${currentPeriod}-${dateStamp}.csv`,
+			columns: [
+				{ header: 'Date', value: (row) => row.date ?? '' },
+				{ header: 'Item ID', value: (row) => row.item_id ?? '' },
+				{ header: 'Item Name', value: (row) => row.item_name ?? itemsById.get(Number(row.item_id))?.name ?? '' },
+				{ header: 'SKU', value: (row) => itemsById.get(Number(row.item_id))?.sku ?? '' },
+				{ header: 'Warehouse ID', value: (row) => row.warehouse_id ?? '' },
+				{ header: 'Warehouse Code', value: (row) => row.warehouse_code ?? '' },
+				{ header: 'In Quantity', value: (row) => Number(row.in_quantity || 0) },
+				{ header: 'Out Quantity', value: (row) => Number(row.out_quantity || 0) },
+				{ header: 'Net Change', value: (row) => Number(row.net_change || 0) },
+			],
+			rows: displayedRows,
+		});
 	}
 
 	async function populateItemsFilter() {
@@ -451,6 +475,8 @@
 				updatePaginationUI(0);
 			});
 		});
+
+		exportBtn?.addEventListener('click', exportHistoryCsv);
 
 		prevPageBtn?.addEventListener('click', () => {
 			currentPage -= 1;

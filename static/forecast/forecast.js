@@ -6,6 +6,7 @@
     const warehouseFilter = document.getElementById('warehouse-filter');
     const applyBtn = document.getElementById('apply-forecast-filter');
     const clearBtn = document.getElementById('clear-forecast-filter');
+    const exportBtn = document.getElementById('export-forecast-csv');
     const tableBody = document.getElementById('forecast-table-body');
     const forecastForPill = document.getElementById('forecast-for-pill');
     const windowPill = document.getElementById('window-pill');
@@ -20,6 +21,7 @@
     const defaultWindowByMode = { daily: 7, monthly: 3 };
     let currentPeriod = 'daily';
     let activeLoadToken = 0;
+    let displayedRows = [];
 
     function toNumber(value, fallback = 0) {
         const parsed = Number(value);
@@ -107,6 +109,8 @@
     function renderRows(rows, options = {}) {
         const { aiLoading = false } = options;
 
+        displayedRows = rows;
+
         if (!rows.length) {
             tableBody.innerHTML = '<tr><td colspan="9" class="loading">No forecast rows found for current filters.</td></tr>';
             return;
@@ -160,6 +164,39 @@
                 </tr>
             `;
         }).join('');
+    }
+
+    function exportForecastCsv() {
+        if (!window.EventideExport || typeof window.EventideExport.exportCsv !== 'function') return;
+
+        const dateStamp = new Date().toISOString().slice(0, 10);
+        window.EventideExport.exportCsv({
+            filename: `forecast-${currentPeriod}-${dateStamp}.csv`,
+            columns: [
+                { header: 'Item ID', value: (row) => row.item_id ?? '' },
+                { header: 'Item Name', value: (row) => row.item_name ?? '' },
+                { header: 'Warehouse ID', value: (row) => row.warehouse_id ?? '' },
+                { header: 'Warehouse Code', value: (row) => row.warehouse_code ?? '' },
+                { header: 'Avg In', value: (row) => toNumber(row.average_in_quantity, 0).toFixed(0) },
+                { header: 'Avg Out', value: (row) => toNumber(row.average_out_quantity, 0).toFixed(0) },
+                { header: 'Avg Net', value: (row) => getAverageNet(row).toFixed(0) },
+                { header: 'AI In', value: (row) => {
+                    const aiIn = getAIForecastIn(row);
+                    return aiIn === null ? '' : aiIn.toFixed(0);
+                } },
+                { header: 'AI Out', value: (row) => {
+                    const aiOut = getAIForecastOut(row);
+                    return aiOut === null ? '' : aiOut.toFixed(0);
+                } },
+                { header: 'AI Net', value: (row) => {
+                    const aiIn = getAIForecastIn(row);
+                    const aiOut = getAIForecastOut(row);
+                    if (aiIn === null || aiOut === null) return '';
+                    return (aiIn - aiOut).toFixed(0);
+                } },
+            ],
+            rows: displayedRows,
+        });
     }
 
     function buildForecastParams(windowValue, includeAI) {
@@ -341,9 +378,11 @@
             itemFilter.value = '';
             warehouseFilter.value = '';
             loadForecast().catch((err) => {
-                tableBody.innerHTML = `<tr><td colspan="6" class="loading">Error loading forecast: ${err.message}</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="9" class="loading">Error loading forecast: ${err.message}</td></tr>`;
             });
         });
+
+        exportBtn?.addEventListener('click', exportForecastCsv);
     }
 
     async function init() {
@@ -354,6 +393,6 @@
     }
 
     init().catch((err) => {
-        tableBody.innerHTML = `<tr><td colspan="6" class="loading">Error loading forecast: ${err.message}</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="9" class="loading">Error loading forecast: ${err.message}</td></tr>`;
     });
 })();

@@ -3,6 +3,7 @@
     const warehouseFilter = document.getElementById('warehouse-filter');
     const queryInput = document.getElementById('item-sku-filter');
     const clearFilter = document.getElementById('clear-filter');
+    const exportBtn = document.getElementById('export-inventory-csv');
     const searchForm = document.getElementById('search-form');
     const prevPageBtn = document.getElementById('inventory-prev-page');
     const nextPageBtn = document.getElementById('inventory-next-page');
@@ -15,6 +16,7 @@
 
     const initialWarehouseParam = (new URLSearchParams(window.location.search).get('warehouse') || '').trim().toLowerCase();
     let cachedRows = [];
+    let displayedRows = [];
     let currentPage = 1;
     const PAGE_SIZE = 10;
 
@@ -127,6 +129,7 @@
     function render(data) {
         if (!list) return;
         if (!data || data.length === 0) {
+            displayedRows = [];
             list.innerHTML = '<p class="loading">No stock found.</p>';
             updateStats([]);
             updateWarehouseContext([]);
@@ -135,6 +138,7 @@
         }
 
         const filtered = data.map(normalizeRow).filter(matchesFilters);
+        displayedRows = filtered;
         if (filtered.length === 0) {
             list.innerHTML = '<p class="loading">No matching stock for current filters.</p>';
             updateStats([]);
@@ -179,6 +183,27 @@
         });
 
         updatePaginationUI(totalPages);
+    }
+
+    function exportInventoryCsv() {
+        if (!window.EventideExport || typeof window.EventideExport.exportCsv !== 'function') return;
+
+        const dateStamp = new Date().toISOString().slice(0, 10);
+        window.EventideExport.exportCsv({
+            filename: `inventory-${dateStamp}.csv`,
+            columns: [
+                { header: 'Item ID', value: (row) => row.item_id ?? '' },
+                { header: 'Item Name', value: (row) => row.name ?? '' },
+                { header: 'SKU', value: (row) => row.sku ?? '' },
+                { header: 'Warehouse ID', value: (row) => row.warehouse_id ?? '' },
+                { header: 'Warehouse Code', value: (row) => row.warehouse_code ?? '' },
+                { header: 'Current Quantity', value: (row) => Number(row.current_quantity || 0) },
+                { header: 'Minimum Quantity', value: (row) => Number(row.minimum_quantity || 0) },
+                { header: 'Low Stock', value: (row) => Number(row.current_quantity || 0) <= Number(row.minimum_quantity || 0) ? 'Yes' : 'No' },
+                { header: 'Last Updated', value: (row) => row.last_updated ?? '' },
+            ],
+            rows: displayedRows,
+        });
     }
 
     function selectedWarehouseCode() {
@@ -255,6 +280,8 @@
             currentPage = 1;
             render(cachedRows);
         });
+
+        exportBtn?.addEventListener('click', exportInventoryCsv);
 
         window.addEventListener('eventide:inventory:refresh', () => {
             currentPage = 1;

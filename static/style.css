@@ -478,6 +478,22 @@ a {
     margin-bottom: 30px;
 }
 
+.panel-header-badges {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.panel-badge-btn {
+    min-height: 28px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+}
+
 .pill {
     display: inline-block;
     padding: 4px 10px;

@@ -81,7 +81,10 @@
 				<div class="panel" style="margin-bottom: 20px;">
 					<div class="panel-header">
 						<h3>Statements</h3>
-						<span id="history-period-pill" class="pill">Daily</span>
+						<div class="panel-header-badges">
+							<span id="history-period-pill" class="pill">Daily</span>
+							<button id="export-history-csv" class="cta-btn ghost panel-badge-btn" type="button">Export CSV</button>
+						</div>
 					</div>
 					<div id="daily-history-context" class="daily-history-context" hidden></div>
 					<div id="daily-history-list" class="events-container">
@@ -104,6 +107,7 @@
 	</footer>
 
 	<script src="../shared/sidebar.js"></script>
+	<script src="../shared/export-utils.js"></script>
 	<script src="history.js"></script>
 </body>
 

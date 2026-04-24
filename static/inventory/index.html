@@ -64,7 +64,10 @@
                 <div class="panel" style="margin-bottom: 20px;">
                     <div class="panel-header">
                         <h3>Current Stock</h3>
-                        <span class="pill">Live</span>
+                        <div class="panel-header-badges">
+                            <span class="pill">Live</span>
+                            <button id="export-inventory-csv" class="cta-btn ghost panel-badge-btn" type="button">Export CSV</button>
+                        </div>
                     </div>
 
                     <div id="inventory-context" class="daily-history-context" hidden></div>
@@ -89,6 +92,7 @@
     </footer>
 
     <script src="../shared/sidebar.js"></script>
+    <script src="../shared/export-utils.js"></script>
     <script src="../events/create-event-modal.js"></script>
     <script src="inventory.js"></script>
     <script>
