@@ -181,6 +181,13 @@
 		return d.toLocaleDateString(undefined, { dateStyle: 'medium' });
 	}
 
+	function formatLocalDateTime(value) {
+		if (!value) return '';
+		const parsed = new Date(value);
+		if (Number.isNaN(parsed.getTime())) return String(value);
+		return parsed.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+	}
+
 	function dateGroupKey(raw) {
 		if (!raw) return '';
 		const parsed = new Date(raw);
@@ -312,11 +319,13 @@
 	function exportHistoryCsv() {
 		if (!window.EventideExport || typeof window.EventideExport.exportCsv !== 'function') return;
 
+		const exportedAtLocal = new Date().toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 		const dateStamp = new Date().toISOString().slice(0, 10);
 		window.EventideExport.exportCsv({
 			filename: `history-${currentPeriod}-${dateStamp}.csv`,
 			columns: [
-				{ header: 'Date', value: (row) => row.date ?? '' },
+				{ header: 'Exported At (Local)', value: () => exportedAtLocal },
+				{ header: 'Date (Local)', value: (row) => formatLocalDateTime(row.date) },
 				{ header: 'Item ID', value: (row) => row.item_id ?? '' },
 				{ header: 'Item Name', value: (row) => row.item_name ?? itemsById.get(Number(row.item_id))?.name ?? '' },
 				{ header: 'SKU', value: (row) => itemsById.get(Number(row.item_id))?.sku ?? '' },

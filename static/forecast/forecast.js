@@ -74,6 +74,13 @@
         return d.toISOString().slice(0, 10);
     }
 
+    function formatLocalDateTime(value) {
+        if (!value) return '';
+        const parsed = new Date(value);
+        if (Number.isNaN(parsed.getTime())) return String(value);
+        return parsed.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+    }
+
     function setModeUI(period) {
         const isDaily = period === 'daily';
         currentPeriod = isDaily ? 'daily' : 'monthly';
@@ -169,10 +176,13 @@
     function exportForecastCsv() {
         if (!window.EventideExport || typeof window.EventideExport.exportCsv !== 'function') return;
 
+        const exportedAtLocal = new Date().toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
         const dateStamp = new Date().toISOString().slice(0, 10);
         window.EventideExport.exportCsv({
             filename: `forecast-${currentPeriod}-${dateStamp}.csv`,
             columns: [
+                { header: 'Exported At (Local)', value: () => exportedAtLocal },
+                { header: 'Forecast For (Local)', value: () => formatLocalDateTime(currentPeriod === 'daily' ? `${(forecastForPill?.textContent || '').match(/\(([^)]+)\)/)?.[1] || ''}T00:00:00` : '') || forecastForPill?.textContent || '' },
                 { header: 'Item ID', value: (row) => row.item_id ?? '' },
                 { header: 'Item Name', value: (row) => row.item_name ?? '' },
                 { header: 'Warehouse ID', value: (row) => row.warehouse_id ?? '' },

@@ -100,6 +100,13 @@
         return d.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
     }
 
+    function formatLocalDateTime(value) {
+        if (!value) return '';
+        const parsed = new Date(value);
+        if (Number.isNaN(parsed.getTime())) return String(value);
+        return parsed.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+    }
+
     function matchesFilters(row) {
         const warehouse = (warehouseFilter?.value || '').toLowerCase();
         const query = (queryInput?.value || '').toLowerCase();
@@ -188,10 +195,12 @@
     function exportInventoryCsv() {
         if (!window.EventideExport || typeof window.EventideExport.exportCsv !== 'function') return;
 
+        const exportedAtLocal = new Date().toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
         const dateStamp = new Date().toISOString().slice(0, 10);
         window.EventideExport.exportCsv({
             filename: `inventory-${dateStamp}.csv`,
             columns: [
+                { header: 'Exported At (Local)', value: () => exportedAtLocal },
                 { header: 'Item ID', value: (row) => row.item_id ?? '' },
                 { header: 'Item Name', value: (row) => row.name ?? '' },
                 { header: 'SKU', value: (row) => row.sku ?? '' },
@@ -200,7 +209,7 @@
                 { header: 'Current Quantity', value: (row) => Number(row.current_quantity || 0) },
                 { header: 'Minimum Quantity', value: (row) => Number(row.minimum_quantity || 0) },
                 { header: 'Low Stock', value: (row) => Number(row.current_quantity || 0) <= Number(row.minimum_quantity || 0) ? 'Yes' : 'No' },
-                { header: 'Last Updated', value: (row) => row.last_updated ?? '' },
+                { header: 'Last Updated (Local)', value: (row) => formatLocalDateTime(row.last_updated) },
             ],
             rows: displayedRows,
         });

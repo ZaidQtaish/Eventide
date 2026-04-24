@@ -77,6 +77,13 @@
         return d.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
     }
 
+    function formatLocalDateTime(value) {
+        if (!value) return '';
+        const parsed = new Date(value);
+        if (Number.isNaN(parsed.getTime())) return String(value);
+        return parsed.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+    }
+
     function getEventBadgeType(type) {
         const normalized = (type || '').toLowerCase();
         if (normalized.includes('inbound')) return 'event-in';
@@ -179,12 +186,14 @@
     function exportEventsCsv() {
         if (!window.EventideExport || typeof window.EventideExport.exportCsv !== 'function') return;
 
+        const exportedAtLocal = new Date().toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
         const dateStamp = new Date().toISOString().slice(0, 10);
         window.EventideExport.exportCsv({
             filename: `events-${dateStamp}.csv`,
             columns: [
+                { header: 'Exported At (Local)', value: () => exportedAtLocal },
                 { header: 'Event ID', value: (evt) => evt.id ?? '' },
-                { header: 'Timestamp', value: (evt) => evt.timestamp ?? '' },
+                { header: 'Timestamp (Local)', value: (evt) => formatLocalDateTime(evt.timestamp) },
                 { header: 'Type', value: (evt) => evt.type ?? '' },
                 { header: 'Reason', value: (evt) => evt.reason_code ?? '' },
                 { header: 'Item ID', value: (evt) => evt.item_id ?? '' },
