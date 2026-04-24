@@ -274,7 +274,7 @@
         const selectedItem = (itemFilter.value || '').trim();
         const selectedWarehouse = (warehouseFilter.value || '').trim();
 
-        tableBody.innerHTML = '<tr><td colspan="6" class="loading">Loading forecast...</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="9" class="loading">Loading forecast...</td></tr>';
 
         const baselinePayload = await fetchForecastPayload(buildForecastParams(windowValue, false));
         if (loadToken !== activeLoadToken) return;
@@ -301,9 +301,8 @@
 
                 return {
                     ...baselineRow,
-                    ai_forecast: aiRow.ai_forecast,
-                    ai_forecast_net: aiRow.ai_forecast_net,
-                    ai_forecast_quantity: aiRow.ai_forecast_quantity,
+                    ai_forecast_in: aiRow.ai_forecast_in,
+                    ai_forecast_out: aiRow.ai_forecast_out,
                 };
             });
 
@@ -319,7 +318,7 @@
             setModeUI('daily');
             windowInput.value = String(defaultWindowByMode.daily);
             loadForecast().catch((err) => {
-                tableBody.innerHTML = `<tr><td colspan="6" class="loading">Error loading forecast: ${err.message}</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="9" class="loading">Error loading forecast: ${err.message}</td></tr>`;
             });
         });
 
@@ -327,13 +326,13 @@
             setModeUI('monthly');
             windowInput.value = String(defaultWindowByMode.monthly);
             loadForecast().catch((err) => {
-                tableBody.innerHTML = `<tr><td colspan="6" class="loading">Error loading forecast: ${err.message}</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="9" class="loading">Error loading forecast: ${err.message}</td></tr>`;
             });
         });
 
         applyBtn?.addEventListener('click', () => {
             loadForecast().catch((err) => {
-                tableBody.innerHTML = `<tr><td colspan="6" class="loading">Error loading forecast: ${err.message}</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="9" class="loading">Error loading forecast: ${err.message}</td></tr>`;
             });
         });
 
