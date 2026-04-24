@@ -466,6 +466,11 @@ a {
     background: #fee2e2;
 }
 
+.forecast-net-zero {
+    color: #666666;
+    background: #e5e7eb;
+}
+
 .panel-header {
     display: flex;
     align-items: center;

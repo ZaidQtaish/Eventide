@@ -118,7 +118,7 @@
             const avgIn = toNumber(row.average_in_quantity, 0);
             const avgOut = toNumber(row.average_out_quantity, 0);
             const avgNet = getAverageNet(row);
-            const netClass = avgNet >= 0 ? 'forecast-net-up' : 'forecast-net-down';
+            const netClass = avgNet === 0 ? 'forecast-net-zero' : (avgNet >= 0 ? 'forecast-net-up' : 'forecast-net-down');
 
             // AI forecast values
             const aiIn = getAIForecastIn(row);
@@ -135,13 +135,13 @@
                 aiNetHtml = '<span class="loading">Loading...</span>';
             } else {
                 if (aiIn !== null) {
-                    aiInHtml = `<span class="forecast-value">${aiIn >= 0 ? '+' : ''}${aiIn.toFixed(0)}</span>`;
+                    aiInHtml = `<span class="forecast-value">${aiIn.toFixed(0)}</span>`;
                 }
                 if (aiOut !== null) {
-                    aiOutHtml = `<span class="forecast-value">${aiOut >= 0 ? '+' : ''}${aiOut.toFixed(0)}</span>`;
+                    aiOutHtml = `<span class="forecast-value">${aiOut.toFixed(0)}</span>`;
                 }
                 if (aiNet !== null) {
-                    const aiNetClass = aiNet >= 0 ? 'forecast-net-up' : 'forecast-net-down';
+                    const aiNetClass = aiNet === 0 ? 'forecast-net-zero' : (aiNet >= 0 ? 'forecast-net-up' : 'forecast-net-down');
                     aiNetHtml = `<span class="forecast-net ${aiNetClass}">${aiNet >= 0 ? '+' : ''}${aiNet.toFixed(0)}</span>`;
                 }
             }
