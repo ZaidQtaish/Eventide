@@ -55,7 +55,10 @@
                 <div class="panel" style="margin-bottom: 20px;">
                     <div class="panel-header">
                         <h3>Latest Events</h3>
-                        <span class="pill">Real-time</span>
+                        <div class="panel-header-badges">
+                            <span class="pill">Real-time</span>
+                            <button id="export-events-csv" class="cta-btn ghost panel-badge-btn" type="button">Export CSV</button>
+                        </div>
                     </div>
                     <div id="events-context" class="daily-history-context" hidden></div>
                     <div id="events-list" class="events-container">
@@ -77,6 +80,7 @@
         </div>
     </footer>
     <script src="../shared/sidebar.js"></script>
+    <script src="../shared/export-utils.js"></script>
     <script src="create-event-modal.js"></script>
     <script src="events.js"></script>
     <script>

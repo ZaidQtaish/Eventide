@@ -5,12 +5,14 @@
     const warehouseFilter = document.getElementById('warehouse-filter');
     const queryInput = document.getElementById('item-sku-filter');
     const clearFilter = document.getElementById('clear-filter');
+    const exportBtn = document.getElementById('export-events-csv');
     const prevPageBtn = document.getElementById('events-prev-page');
     const nextPageBtn = document.getElementById('events-next-page');
     const pageInfo = document.getElementById('events-page-info');
     const eventsContext = document.getElementById('events-context');
 
     let cachedEvents = [];
+    let displayedEvents = [];
     let currentPage = 1;
     const PAGE_SIZE = 8;
 
@@ -111,6 +113,7 @@
     function render(events) {
         if (!list) return;
         if (!events || events.length === 0) {
+            displayedEvents = [];
             list.innerHTML = '<p class="loading">No inventory events found.</p>';
             updateWarehouseContext([]);
             updatePaginationUI(0);
@@ -118,6 +121,7 @@
         }
 
         const filtered = events.filter(matchesFilters);
+        displayedEvents = filtered;
 
         if (filtered.length === 0) {
             list.innerHTML = '<p class="loading">No matching events for current filters.</p>';
@@ -170,6 +174,30 @@
         });
 
         updatePaginationUI(totalPages);
+    }
+
+    function exportEventsCsv() {
+        if (!window.EventideExport || typeof window.EventideExport.exportCsv !== 'function') return;
+
+        const dateStamp = new Date().toISOString().slice(0, 10);
+        window.EventideExport.exportCsv({
+            filename: `events-${dateStamp}.csv`,
+            columns: [
+                { header: 'Event ID', value: (evt) => evt.id ?? '' },
+                { header: 'Timestamp', value: (evt) => evt.timestamp ?? '' },
+                { header: 'Type', value: (evt) => evt.type ?? '' },
+                { header: 'Reason', value: (evt) => evt.reason_code ?? '' },
+                { header: 'Item ID', value: (evt) => evt.item_id ?? '' },
+                { header: 'Item Name', value: (evt) => evt.item_name ?? '' },
+                { header: 'SKU', value: (evt) => evt.sku ?? '' },
+                { header: 'Warehouse ID', value: (evt) => evt.warehouse_id ?? '' },
+                { header: 'Warehouse Code', value: (evt) => evt.warehouse_code ?? '' },
+                { header: 'User ID', value: (evt) => evt.user_id ?? '' },
+                { header: 'Username', value: (evt) => evt.username ?? '' },
+                { header: 'Quantity Change', value: (evt) => evt.quantity_change ?? 0 },
+            ],
+            rows: displayedEvents,
+        });
     }
 
     function selectedWarehouseCode() {
@@ -257,6 +285,8 @@
             currentPage = 1;
             render(cachedEvents);
         });
+
+        exportBtn?.addEventListener('click', exportEventsCsv);
 
         window.addEventListener('eventide:events:refresh', () => {
             currentPage = 1;
