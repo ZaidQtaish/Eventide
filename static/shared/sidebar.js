@@ -39,7 +39,7 @@
         `;
     }
 
-    async function fetchSessionRole() {
+    window.fetchSessionRole = async function() {
         try {
             const res = await fetch('/api/session');
             if (!res.ok) return '';

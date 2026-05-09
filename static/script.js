@@ -1,3 +1,10 @@
+import { fetchSessionRole } from './shared/sidebar.js';
+
+const role = await fetchSessionRole();
+if (role === 'admin') {
+    renderAdminDashboard();
+}
+
 // Fetch latest 5 events and display them
 async function fetchWithFallback(primaryPath, fallbackPath) {
     const primary = await fetch(primaryPath);
