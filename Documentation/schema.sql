@@ -87,7 +87,8 @@ INSERT INTO users (name, role, username, password_hash, phone_number) VALUES
 ('Malik', 'warehouse_manager', 'malik', '$2a$12$tQskx4S2i./ceRX4zNvW4OU95QZTETLJmYtMAGNL0FIrTjexs2.Fm', '555-1002'),
 ('Rami', 'inventory_clerk', 'rami', '$2a$12$tQskx4S2i./ceRX4zNvW4OU95QZTETLJmYtMAGNL0FIrTjexs2.Fm', '555-1003'),
 ('Ahmad', 'warehouse_manager', 'ahmad', '$2a$12$tQskx4S2i./ceRX4zNvW4OU95QZTETLJmYtMAGNL0FIrTjexs2.Fm', '555-1004'),
-('Mohammad', 'inventory_clerk', 'mohammad', '$2a$12$tQskx4S2i./ceRX4zNvW4OU95QZTETLJmYtMAGNL0FIrTjexs2.Fm', '555-1005');
+('Mohammad', 'inventory_clerk', 'mohammad', '$2a$12$tQskx4S2i./ceRX4zNvW4OU95QZTETLJmYtMAGNL0FIrTjexs2.Fm', '555-1005'),
+('Sarah', 'sales_manager', 'sarah', '$2a$12$tQskx4S2i./ceRX4zNvW4OU95QZTETLJmYtMAGNL0FIrTjexs2.Fm', '555-1006');
 
 -- Items
 INSERT INTO items (name, sku, description, minimum_stock, category, supplier_id) VALUES
