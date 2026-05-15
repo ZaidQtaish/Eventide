@@ -143,7 +143,8 @@ func RequireAuth(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func RequireRole(role string) func(http.HandlerFunc) http.HandlerFunc {
+// RequireRoles checks if user's role is one of the allowed roles
+func RequireRoles(allowedRoles ...string) func(http.HandlerFunc) http.HandlerFunc {
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			sess, ok := getValidSession(r)
@@ -153,7 +154,15 @@ func RequireRole(role string) func(http.HandlerFunc) http.HandlerFunc {
 				return
 			}
 
-			if sess.Role != role {
+			allowed := false
+			for _, role := range allowedRoles {
+				if sess.Role == role {
+					allowed = true
+					break
+				}
+			}
+
+			if !allowed {
 				w.Header().Set("Content-Type", "application/json")
 				http.Error(w, `{"error":"Forbidden"}`, http.StatusForbidden)
 				return
