@@ -1171,6 +1171,12 @@ body.modal-open {
 }
 
 .role-pill.admin {
+    border-color: #fee2e2;
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.role-pill.manager {
     border-color: #bfdbfe;
     background: #eff6ff;
     color: #1e40af;

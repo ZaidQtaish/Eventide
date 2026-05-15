@@ -105,7 +105,7 @@ function render(users) {
 	filtered.forEach((user) => {
 		const card = document.createElement('article');
 		card.className = 'user-card';
-		const roleClass = user.role === 'admin' ? 'admin' : 'staff';
+		const roleClass = user.role;
 		const roleLabel = user.role || 'staff';
 		const phoneLabel = user.phone_number || 'No phone on file';
 		const editButton = isAdminUser

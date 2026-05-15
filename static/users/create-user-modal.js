@@ -29,7 +29,7 @@
                             <label for="new-user-role">Role</label>
                             <select id="new-user-role" class="form-control" required>
                                 <option value="staff">Staff</option>
-                                <option value="staff">Manager</option>
+                                <option value="manager">Manager</option>
                                 <option value="admin">Admin</option>
                             </select>
                         </div>
@@ -138,7 +138,7 @@
 
             if (nameInput) nameInput.value = user.name || '';
             if (usernameInput) usernameInput.value = user.username || '';
-            if (roleInput) roleInput.value = user.role || 'staff';
+            if (roleInput) roleInput.value = user.role;
             if (phoneInput) phoneInput.value = user.phone_number || '';
             if (passwordInput) {
                 passwordInput.value = '';
