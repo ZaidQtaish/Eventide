@@ -138,10 +138,29 @@ a {
 
 .sidebar-footer {
     margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 8px;
+    align-items: center;
+    width: 100%;
+}
+
+.sidebar-footer .role-pill {
+    width: fit-content;
+    text-transform: capitalize;
+    margin-bottom: 8px;
 }
 
 .sidebar-link-logout {
     color: #b91c1c;
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+    padding-bottom: 8px;
+    width: 100%;
+    text-align: center;
+    padding-top: 8px;
+}
 }
 
 .sidebar-link-logout:hover {

@@ -32,6 +32,7 @@ function buildSidebar(active, role) {
                 ${adminSection}
             </nav>
             <div class="sidebar-footer">
+                <span class="role-pill ${role}">${role || 'user'}</span>
                 <a class="sidebar-link sidebar-link-logout" href="/logout">Logout</a>
             </div>
         </aside>
