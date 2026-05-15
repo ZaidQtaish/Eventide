@@ -29,6 +29,7 @@
                             <label for="new-user-role">Role</label>
                             <select id="new-user-role" class="form-control" required>
                                 <option value="staff">Staff</option>
+                                <option value="staff">Manager</option>
                                 <option value="admin">Admin</option>
                             </select>
                         </div>
