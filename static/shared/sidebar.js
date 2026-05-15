@@ -10,14 +10,28 @@ function getActiveSection(pathname) {
 }
 
 function buildSidebar(active, role) {
-    const isAdmin = String(role || '').toLowerCase() === 'admin';
-    const adminSection = isAdmin
-        ? `
+    const normalizedRole = String(role || '').toLowerCase();
+    const isAdmin = normalizedRole === 'admin';
+    const isManager = normalizedRole === 'manager';
+    const isManagerOrAdmin = ['admin', 'manager'].includes(normalizedRole);
+    
+    let adminSection = '';
+    if (isAdmin) {
+        adminSection = `
                 <div class="sidebar-separator" role="separator" aria-label="Admin section">Admin</div>
+                <a class="sidebar-link ${active === 'forecast' ? 'active' : ''}" href="/app/forecast/">Forecast</a>
                 <a class="sidebar-link ${active === 'items' ? 'active' : ''}" href="/app/items/">Items</a>
                 <a class="sidebar-link ${active === 'users' ? 'active' : ''}" href="/app/users/">Users</a>
-            `
-        : '';
+            `;
+    } else if (isManager) {
+        adminSection = `
+                <div class="sidebar-separator" role="separator" aria-label="Manager section">Manager</div>
+                <a class="sidebar-link ${active === 'forecast' ? 'active' : ''}" href="/app/forecast/">Forecast</a>
+                <a class="sidebar-link ${active === 'items' ? 'active' : ''}" href="/app/items/">Items</a>
+            `;
+    }
+
+    const forecastLink = '';
 
     return `
         <aside class="app-sidebar" aria-label="Primary">
@@ -26,7 +40,7 @@ function buildSidebar(active, role) {
                 <a class="sidebar-link ${active === 'dashboard' ? 'active' : ''}" href="/app/">Dashboard</a>
                 <a class="sidebar-link ${active === 'inventory' ? 'active' : ''}" href="/app/inventory/">Inventory</a>
                 <a class="sidebar-link ${active === 'history' ? 'active' : ''}" href="/app/history/">History</a>
-                <a class="sidebar-link ${active === 'forecast' ? 'active' : ''}" href="/app/forecast/">Forecast</a>
+                ${forecastLink}
                 <a class="sidebar-link ${active === 'warehouses' ? 'active' : ''}" href="/app/warehouses/">Warehouses</a>
                 <a class="sidebar-link ${active === 'events' ? 'active' : ''}" href="/app/events/">Events</a>
                 ${adminSection}
