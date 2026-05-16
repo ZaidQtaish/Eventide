@@ -40,7 +40,7 @@ export async function renderBasicDashboard() {
     await loadRecentEvents();
 }
 
-// MANAGER DASHBOARD - warehouse_manager, sales_manager, manager, + admin
+// MANAGER DASHBOARD
 export async function renderManagerDashboard() {
     const dashboard = document.getElementById('dashboard');
     dashboard.innerHTML = `
@@ -100,7 +100,7 @@ export async function renderManagerDashboard() {
     await loadDemandSpikes();
 }
 
-// ADMIN DASHBOARD - admin only
+// ADMIN DASHBOARD
 export async function renderAdminDashboard() {
     const dashboard = document.getElementById('dashboard');
     dashboard.innerHTML = `
@@ -178,16 +178,12 @@ async function loadInventoryStats() {
         const stock = await response.json() || [];
         const totalItems = stock.length;
         const belowMin = stock.filter(item => item.MinimumQuantity && item.CurrentQuantity < item.MinimumQuantity);
-        const uniqueWarehouses = new Set(stock.map(item => item.WarehouseCode).filter(Boolean));
+        const uniqueWarehouses = new Set(stock.map(item => item.WarehouseCode));
 
         totalEl.textContent = totalItems;
         belowMinEl.textContent = belowMin.length;
         warehousesEl.textContent = uniqueWarehouses.size || '--';
-        const lastUpdated = stock.reduce((latest, item) => {
-            const ts = item.LastUpdated ? new Date(item.LastUpdated) : null;
-            if (!ts) return latest;
-            return !latest || ts > latest ? ts : latest;
-        }, null);
+        const lastUpdated = new Date(Math.max(...stock.map(item => new Date(item.LastUpdated).getTime())));
         lastUpdateEl.textContent = lastUpdated ? lastUpdated.toLocaleString() : '—';
 
         if (!belowMin.length) {
