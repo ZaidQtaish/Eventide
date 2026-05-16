@@ -163,3 +163,25 @@ type chatResponse struct {
 		} `json:"message"`
 	} `json:"choices"`
 }
+
+type MostActiveItem struct {
+	ID         int    `json:"id"`
+	Name       string `json:"Name"`
+	SKU        string `json:"SKU"`
+	EventCount int    `json:"EventCount"`
+}
+
+type DeadStockItem struct {
+	ID              int    `json:"id"`
+	Name            string `json:"Name"`
+	SKU             string `json:"SKU"`
+	CurrentQuantity int    `json:"CurrentQuantity"`
+	DaysInactive    int    `json:"DaysInactive"`
+}
+
+type DemandSpikeItem struct {
+	ID             int    `json:"id"`
+	Name           string `json:"Name"`
+	SKU            string `json:"SKU"`
+	RecentActivity int    `json:"RecentActivity"`
+}
