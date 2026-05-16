@@ -61,6 +61,47 @@
                 </div>
             </div>
         </section>
+
+        <!-- Manager/Admin Dashboard Sections (populated dynamically) -->
+        <section id="manager-dashboard" style="display: none;" class="dashboard-section">
+            <div class="container">
+                <div class="manager-metrics">
+                    <div class="dashboard-split">
+                        <div class="panel">
+                            <div class="panel-header">
+                                <h3>Most Active Items (Last 30 Days)</h3>
+                                <span class="pill">Top 5</span>
+                            </div>
+                            <div id="most-active" class="items-list">
+                                <p class="loading">Loading...</p>
+                            </div>
+                        </div>
+
+                        <div class="panel">
+                            <div class="panel-header">
+                                <h3>Dead Stock (No Activity)</h3>
+                                <span class="pill warning">Inactive</span>
+                            </div>
+                            <div id="dead-stock" class="items-list">
+                                <p class="loading">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-split">
+                        <div class="panel" style="grid-column: 1 / -1;">
+                            <div class="panel-header">
+                                <h3>Sudden Demand Spikes</h3>
+                                <span class="pill alert">Alert</span>
+                            </div>
+                            <div id="demand-spikes" class="items-list">
+                                <p class="loading">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
     <footer class="footer">

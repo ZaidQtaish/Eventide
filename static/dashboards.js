@@ -1,97 +1,12 @@
 // BASIC DASHBOARD - All roles
 export async function renderBasicDashboard() {
-    const dashboard = document.getElementById('dashboard');
-    dashboard.innerHTML = `
-        <div class="dashboard-section">
-            <h2>Inventory Overview</h2>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-label">Total Items</div>
-                    <div class="stat-value" id="stat-total-items">--</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Below Minimum</div>
-                    <div class="stat-value" id="stat-below-min">--</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Warehouses</div>
-                    <div class="stat-value" id="stat-warehouses">--</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Last Update</div>
-                    <div class="stat-value" id="stat-last-update">--</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="dashboard-section">
-            <h2>Low Stock Items</h2>
-            <div id="low-stock" class="low-stock-list"></div>
-        </div>
-
-        <div class="dashboard-section">
-            <h2>Recent Changes</h2>
-            <div id="recent-events" class="events-list"></div>
-        </div>
-    `;
-
     // Load data
     await loadInventoryStats();
     await loadRecentEvents();
 }
 
-// MANAGER DASHBOARD
+// MANAGER DASHBOARD - warehouse_manager, sales_manager, manager, + admin
 export async function renderManagerDashboard() {
-    const dashboard = document.getElementById('dashboard');
-    dashboard.innerHTML = `
-        <div class="dashboard-section">
-            <h2>Inventory Overview</h2>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-label">Total Items</div>
-                    <div class="stat-value" id="stat-total-items">--</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Below Minimum</div>
-                    <div class="stat-value" id="stat-below-min">--</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Warehouses</div>
-                    <div class="stat-value" id="stat-warehouses">--</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Last Update</div>
-                    <div class="stat-value" id="stat-last-update">--</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="dashboard-section">
-            <h2>Low Stock Items</h2>
-            <div id="low-stock" class="low-stock-list"></div>
-        </div>
-
-        <div class="dashboard-section">
-            <h2>Most Active Items (Last 30 Days)</h2>
-            <div id="most-active" class="items-list"></div>
-        </div>
-
-        <div class="dashboard-section">
-            <h2>Dead Stock (No Activity)</h2>
-            <div id="dead-stock" class="items-list"></div>
-        </div>
-
-        <div class="dashboard-section">
-            <h2>Sudden Demand Spikes</h2>
-            <div id="demand-spikes" class="items-list"></div>
-        </div>
-
-        <div class="dashboard-section">
-            <h2>Recent Changes</h2>
-            <div id="recent-events" class="events-list"></div>
-        </div>
-    `;
-
     // Load data
     await loadInventoryStats();
     await loadRecentEvents();
@@ -100,60 +15,8 @@ export async function renderManagerDashboard() {
     await loadDemandSpikes();
 }
 
-// ADMIN DASHBOARD
+// ADMIN DASHBOARD - admin only
 export async function renderAdminDashboard() {
-    const dashboard = document.getElementById('dashboard');
-    dashboard.innerHTML = `
-        <div class="dashboard-section">
-            <h2>Inventory Overview</h2>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-label">Total Items</div>
-                    <div class="stat-value" id="stat-total-items">--</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Below Minimum</div>
-                    <div class="stat-value" id="stat-below-min">--</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Warehouses</div>
-                    <div class="stat-value" id="stat-warehouses">--</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Last Update</div>
-                    <div class="stat-value" id="stat-last-update">--</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="dashboard-section">
-            <h2>Low Stock Items</h2>
-            <div id="low-stock" class="low-stock-list"></div>
-        </div>
-
-        <div class="dashboard-section">
-            <h2>Most Active Items (Last 30 Days)</h2>
-            <div id="most-active" class="items-list"></div>
-        </div>
-
-        <div class="dashboard-section">
-            <h2>Dead Stock (No Activity)</h2>
-            <div id="dead-stock" class="items-list"></div>
-        </div>
-
-        <div class="dashboard-section">
-            <h2>Sudden Demand Spikes</h2>
-            <div id="demand-spikes" class="items-list"></div>
-        </div>
-
-        <div class="dashboard-section">
-            <h2>Recent Changes</h2>
-            <div id="recent-events" class="events-list"></div>
-        </div>
-
-        <!-- Admin-only metric will go here -->
-    `;
-
     // Load data
     await loadInventoryStats();
     await loadRecentEvents();
@@ -169,6 +32,8 @@ async function loadInventoryStats() {
     const warehousesEl = document.getElementById('stat-warehouses');
     const lastUpdateEl = document.getElementById('stat-last-update');
     const lowStockContainer = document.getElementById('low-stock');
+    
+    // Only run if elements exist
     if (!totalEl || !belowMinEl || !warehousesEl || !lastUpdateEl || !lowStockContainer) return;
 
     try {
