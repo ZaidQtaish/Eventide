@@ -1,58 +1,3 @@
-function getActiveSection(pathname) {
-    if (pathname.startsWith('/app/users/')) return 'users';
-    if (pathname.startsWith('/app/items/')) return 'items';
-    if (pathname.startsWith('/app/inventory/')) return 'inventory';
-    if (pathname.startsWith('/app/warehouses/')) return 'warehouses';
-    if (pathname.startsWith('/app/forecast/')) return 'forecast';
-    if (pathname.startsWith('/app/history/')) return 'history';
-    if (pathname.startsWith('/app/events/')) return 'events';
-    return 'dashboard';
-}
-
-function buildSidebar(active, role) {
-    const normalizedRole = String(role || '').toLowerCase();
-    const isAdmin = normalizedRole === 'admin';
-    const isManager = normalizedRole === 'manager';
-    const isManagerOrAdmin = ['admin', 'manager'].includes(normalizedRole);
-    
-    let adminSection = '';
-    if (isAdmin) {
-        adminSection = `
-                <div class="sidebar-separator" role="separator" aria-label="Admin section">Admin</div>
-                <a class="sidebar-link ${active === 'forecast' ? 'active' : ''}" href="/app/forecast/">Forecast</a>
-                <a class="sidebar-link ${active === 'items' ? 'active' : ''}" href="/app/items/">Items</a>
-                <a class="sidebar-link ${active === 'users' ? 'active' : ''}" href="/app/users/">Users</a>
-            `;
-    } else if (isManager) {
-        adminSection = `
-                <div class="sidebar-separator" role="separator" aria-label="Manager section">Manager</div>
-                <a class="sidebar-link ${active === 'forecast' ? 'active' : ''}" href="/app/forecast/">Forecast</a>
-                <a class="sidebar-link ${active === 'items' ? 'active' : ''}" href="/app/items/">Items</a>
-            `;
-    }
-
-    const forecastLink = '';
-
-    return `
-        <aside class="app-sidebar" aria-label="Primary">
-            <a href="/app/" class="sidebar-logo">Eventide</a>
-            <nav class="sidebar-nav">
-                <a class="sidebar-link ${active === 'dashboard' ? 'active' : ''}" href="/app/">Dashboard</a>
-                <a class="sidebar-link ${active === 'inventory' ? 'active' : ''}" href="/app/inventory/">Inventory</a>
-                <a class="sidebar-link ${active === 'history' ? 'active' : ''}" href="/app/history/">History</a>
-                ${forecastLink}
-                <a class="sidebar-link ${active === 'warehouses' ? 'active' : ''}" href="/app/warehouses/">Warehouses</a>
-                <a class="sidebar-link ${active === 'events' ? 'active' : ''}" href="/app/events/">Events</a>
-                ${adminSection}
-            </nav>
-            <div class="sidebar-footer">
-                <span class="role-pill ${role}">${role || 'user'}</span>
-                <a class="sidebar-link sidebar-link-logout" href="/logout">Logout</a>
-            </div>
-        </aside>
-    `;
-}
-
 export const fetchSessionRole = async function() {
     try {
         const res = await fetch('/api/session');
@@ -62,20 +7,65 @@ export const fetchSessionRole = async function() {
     } catch (_) {
         return '';
     }
-}
+};
 
-async function initSidebar() {
-    const root = document.getElementById('sidebar-root');
-    if (!root) return;
+(() => {
+    function getActiveSection(pathname) {
+        if (pathname.startsWith('/app/users/')) return 'users';
+        if (pathname.startsWith('/app/items/')) return 'items';
+        if (pathname.startsWith('/app/inventory/')) return 'inventory';
+        if (pathname.startsWith('/app/warehouses/')) return 'warehouses';
+        if (pathname.startsWith('/app/forecast/')) return 'forecast';
+        if (pathname.startsWith('/app/history/')) return 'history';
+        if (pathname.startsWith('/app/events/')) return 'events';
+        return 'dashboard';
+    }
 
-    const active = getActiveSection(window.location.pathname || '/');
-    const role = await fetchSessionRole();
-    root.innerHTML = buildSidebar(active, role);
-    document.body.classList.add('has-sidebar');
-}
+    function buildSidebar(active, role) {
+        const isAdmin = String(role || '').toLowerCase() === 'admin';
+        const adminSection = isAdmin
+            ? `
+                    <div class="sidebar-separator" role="separator" aria-label="Admin section">Admin</div>
+                    <a class="sidebar-link ${active === 'items' ? 'active' : ''}" href="/app/items/">Items</a>
+                    <a class="sidebar-link ${active === 'users' ? 'active' : ''}" href="/app/users/">Users</a>
+                `
+            : '';
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initSidebar);
-} else {
-    initSidebar();
-}
+        return `
+            <aside class="app-sidebar" aria-label="Primary">
+                <a href="/app/" class="sidebar-logo">
+                    <img src="/public/boxes.svg" alt="Eventide" class="sidebar-logo-icon" />
+                    <span class="sidebar-logo-text">Eventide</span>
+                </a>
+                <nav class="sidebar-nav">
+                    <a class="sidebar-link ${active === 'dashboard' ? 'active' : ''}" href="/app/">Dashboard</a>
+                    <a class="sidebar-link ${active === 'inventory' ? 'active' : ''}" href="/app/inventory/">Inventory</a>
+                    <a class="sidebar-link ${active === 'history' ? 'active' : ''}" href="/app/history/">History</a>
+                    <a class="sidebar-link ${active === 'forecast' ? 'active' : ''}" href="/app/forecast/">Forecast</a>
+                    <a class="sidebar-link ${active === 'warehouses' ? 'active' : ''}" href="/app/warehouses/">Warehouses</a>
+                    <a class="sidebar-link ${active === 'events' ? 'active' : ''}" href="/app/events/">Events</a>
+                    ${adminSection}
+                </nav>
+                <div class="sidebar-footer">
+                    <a class="sidebar-link sidebar-link-logout" href="/logout">Logout</a>
+                </div>
+            </aside>
+        `;
+    }
+
+    async function initSidebar() {
+        const root = document.getElementById('sidebar-root');
+        if (!root) return;
+
+        const active = getActiveSection(window.location.pathname || '/');
+        const role = await fetchSessionRole();
+        root.innerHTML = buildSidebar(active, role);
+        document.body.classList.add('has-sidebar');
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initSidebar);
+    } else {
+        initSidebar();
+    }
+})();

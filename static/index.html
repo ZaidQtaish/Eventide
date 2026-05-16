@@ -51,6 +51,30 @@
             margin: 0 auto;
         }
 
+.navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .navbar-logo {
+            height: 28px;
+            width: 28px;
+            filter: brightness(0) saturate(100%) invert(22%) sepia(71%) saturate(1550%) hue-rotate(201deg) brightness(102%) contrast(97%);
+        }
+
+        .navbar-text {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+        }
+
         .logo {
             font-size: 1.5rem;
             font-weight: 800;
@@ -392,8 +416,9 @@
 <body>
     <nav class="navbar">
         <div class="container nav-container">
-            <a href="/">
-                <div class="logo">Eventide</div>
+            <a href="/" class="navbar-brand">
+                <img src="/public/boxes.svg" alt="Eventide" class="navbar-logo" />
+                <span class="navbar-text">Eventide</span>
             </a>
             <ul class="nav-links">
                 <li><a href="#features">Features</a></li>

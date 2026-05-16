@@ -95,9 +95,26 @@ a {
     font-size: 22px;
     font-weight: 800;
     letter-spacing: -0.4px;
-    color: var(--text-dark);
-    display: block;
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     padding: 8px 10px;
+    text-decoration: none;
+}
+
+.sidebar-logo-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    filter: brightness(0) saturate(100%) invert(22%) sepia(71%) saturate(1550%) hue-rotate(201deg) brightness(102%) contrast(97%);
+}
+
+.sidebar-logo-text {
+    display: block;
 }
 
 .sidebar-nav {
@@ -1322,10 +1339,25 @@ body.modal-open {
 }
 
 .auth-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     font-weight: 800;
     font-size: 24px;
-    color: var(--text-dark);
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     letter-spacing: -0.5px;
+    margin: 0 auto;
+    margin-left: -30px;
+}
+
+.auth-logo-icon {
+    height: 28px;
+    width: 28px;
+    filter: brightness(0) saturate(100%) invert(22%) sepia(71%) saturate(1550%) hue-rotate(201deg) brightness(102%) contrast(97%);
 }
 
 .auth-title {
