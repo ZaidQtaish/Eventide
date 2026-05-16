@@ -100,7 +100,7 @@ func (a *App) GetDemandSpikeHandler(w http.ResponseWriter, r *http.Request) {
             ) > COALESCE(
                 SUM(CASE WHEN e.timestamp >= NOW() - INTERVAL '14 days' AND e.timestamp < NOW() - INTERVAL '7 days' THEN e.quantity_change ELSE 0 END),
                 0
-            )
+            ) * 1.5
         ORDER BY recent_activity DESC
         LIMIT 10
     `
