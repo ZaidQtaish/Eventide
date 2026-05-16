@@ -35,6 +35,7 @@ func main() {
 	http.HandleFunc("/api/warehouses/", RequireAuth(app.WarehousesHandler))
 	http.HandleFunc("/api/most-active", RequireRoles("admin", "manager")(app.GetMostActiveHandler))
 	http.HandleFunc("/api/dead-stock", RequireRoles("admin", "manager")(app.GetDeadStockHandler))
+	http.HandleFunc("/api/demand-spikes", RequireRoles("admin", "manager")(app.GetDemandSpikeHandler))
 	http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("./public"))))
 	http.Handle("/style.css", http.FileServer(http.Dir("./static")))
 
