@@ -230,7 +230,7 @@ async function loadMostActive() {
     if (!container) return;
 
     try {
-        const response = await fetch('/api/dashboard/most-active');
+        const response = await fetch('/api/most-active');
         if (!response.ok) throw new Error('Failed to fetch most active items');
 
         const items = await response.json();
@@ -251,7 +251,7 @@ async function loadDeadStock() {
     if (!container) return;
 
     try {
-        const response = await fetch('/api/dashboard/dead-stock');
+        const response = await fetch('/api/dead-stock');
         if (!response.ok) throw new Error('Failed to fetch dead stock');
 
         const items = await response.json();
@@ -272,7 +272,7 @@ async function loadDemandSpikes() {
     if (!container) return;
 
     try {
-        const response = await fetch('/api/dashboard/demand-spikes');
+        const response = await fetch('/api/demand-spikes');
         if (!response.ok) throw new Error('Failed to fetch demand spikes');
 
         const items = await response.json();
