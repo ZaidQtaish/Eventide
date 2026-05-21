@@ -28,6 +28,25 @@ var (
 	sessionMu    sync.RWMutex
 )
 
+// init starts the background session cleanup goroutine
+func init() {
+	go func() {
+		ticker := time.NewTicker(5 * time.Minute)
+		defer ticker.Stop()
+
+		for range ticker.C {
+			sessionMu.Lock()
+			now := time.Now()
+			for token, sess := range sessionStore {
+				if sess.ExpiresAt.Before(now) {
+					delete(sessionStore, token)
+				}
+			}
+			sessionMu.Unlock()
+		}
+	}()
+}
+
 func getValidSession(r *http.Request) (session, bool) {
 	cookie, err := r.Cookie(sessionCookieName)
 	if err != nil {
