@@ -22,14 +22,25 @@ export const fetchSessionRole = async function() {
     }
 
     function buildSidebar(active, role) {
-        const isAdmin = String(role || '').toLowerCase() === 'admin';
-        const adminSection = isAdmin
-            ? `
+        const userRole = String(role || '').toLowerCase();
+        const isAdmin = userRole === 'admin';
+        const isManager = userRole === 'manager';
+
+        let adminManagerSection = '';
+        if (isAdmin) {
+            adminManagerSection = `
                     <div class="sidebar-separator" role="separator" aria-label="Admin section">Admin</div>
                     <a class="sidebar-link ${active === 'items' ? 'active' : ''}" href="/app/items/">Items</a>
+                    <a class="sidebar-link ${active === 'forecast' ? 'active' : ''}" href="/app/forecast/">Forecast</a>
                     <a class="sidebar-link ${active === 'users' ? 'active' : ''}" href="/app/users/">Users</a>
-                `
-            : '';
+                `;
+        } else if (isManager) {
+            adminManagerSection = `
+                    <div class="sidebar-separator" role="separator" aria-label="Manager section">Manager</div>
+                    <a class="sidebar-link ${active === 'items' ? 'active' : ''}" href="/app/items/">Items</a>
+                    <a class="sidebar-link ${active === 'forecast' ? 'active' : ''}" href="/app/forecast/">Forecast</a>
+                `;
+        }
 
         return `
             <aside class="app-sidebar" aria-label="Primary">
@@ -41,10 +52,9 @@ export const fetchSessionRole = async function() {
                     <a class="sidebar-link ${active === 'dashboard' ? 'active' : ''}" href="/app/">Dashboard</a>
                     <a class="sidebar-link ${active === 'inventory' ? 'active' : ''}" href="/app/inventory/">Inventory</a>
                     <a class="sidebar-link ${active === 'history' ? 'active' : ''}" href="/app/history/">History</a>
-                    <a class="sidebar-link ${active === 'forecast' ? 'active' : ''}" href="/app/forecast/">Forecast</a>
                     <a class="sidebar-link ${active === 'warehouses' ? 'active' : ''}" href="/app/warehouses/">Warehouses</a>
                     <a class="sidebar-link ${active === 'events' ? 'active' : ''}" href="/app/events/">Events</a>
-                    ${adminSection}
+                    ${adminManagerSection}
                 </nav>
                 <div class="sidebar-footer">
                     <a class="sidebar-link sidebar-link-logout" href="/logout">Logout</a>

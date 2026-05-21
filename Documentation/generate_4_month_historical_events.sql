@@ -4,6 +4,10 @@
 
 BEGIN;
 
+-- Delete existing records
+DELETE FROM events;
+DELETE FROM snapshot;
+
 DO $$
 DECLARE
     pair_rec RECORD;
