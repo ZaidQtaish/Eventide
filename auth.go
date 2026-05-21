@@ -28,7 +28,7 @@ var (
 	sessionMu    sync.RWMutex
 )
 
-// init starts the background session cleanup goroutine
+// init starts the background session cleanup goroutine (prevents memory leaks)
 func init() {
 	go func() {
 		ticker := time.NewTicker(5 * time.Minute)

@@ -161,13 +161,29 @@
 
             const details = document.createElement('div');
             details.className = 'event-details';
-            details.innerHTML = `
-                <div class="event-title-line">
-                    <div class="event-title">${evt.item_name || 'Unknown item'} (${evt.sku || 'SKU N/A'})</div>
-                    ${warehouseChip}
-                </div>
-                <div class="event-meta">${evt.username || 'Unknown user'} · ${evt.reason_code || 'No reason'} · ${formatDate(evt.timestamp)}</div>
-            `;
+
+            const titleLine = document.createElement('div');
+            titleLine.className = 'event-title-line';
+
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'event-title';
+            titleDiv.textContent = `${evt.item_name || 'Unknown item'} (${evt.sku || 'SKU N/A'})`;
+            titleLine.appendChild(titleDiv);
+
+            if (!hasWarehouseFilter && evt.warehouse_code) {
+                const warehouseChipSpan = document.createElement('span');
+                warehouseChipSpan.className = 'warehouse-chip';
+                warehouseChipSpan.title = 'Warehouse';
+                warehouseChipSpan.textContent = evt.warehouse_code;
+                titleLine.appendChild(warehouseChipSpan);
+            }
+
+            details.appendChild(titleLine);
+
+            const meta = document.createElement('div');
+            meta.className = 'event-meta';
+            meta.textContent = `${evt.username || 'Unknown user'} · ${evt.reason_code || 'No reason'} · ${formatDate(evt.timestamp)}`;
+            details.appendChild(meta);
 
             const qty = document.createElement('div');
             qty.className = 'event-qty';
@@ -223,9 +239,11 @@
         }
 
         eventsContext.hidden = false;
-        eventsContext.innerHTML = `
-            <span class="warehouse-context-pill">Warehouse: ${selectedWarehouse.toUpperCase()}</span>
-        `;
+        eventsContext.innerHTML = '';
+        const pill = document.createElement('span');
+        pill.className = 'warehouse-context-pill';
+        pill.textContent = `Warehouse: ${selectedWarehouse.toUpperCase()}`;
+        eventsContext.appendChild(pill);
     }
 
     function updatePaginationUI(totalPages) {
