@@ -1,5 +1,4 @@
 package handlers
-package handlers
 
 import (
 	"testing"
@@ -113,14 +112,14 @@ func TestEventTypeValidation(t *testing.T) {
 // TestReasonCodeValidation verifies allowed reason codes
 func TestReasonCodeValidation(t *testing.T) {
 	validCodes := map[string]bool{
-		"PURCHASE":  true,
-		"SALE":      true,
-		"RETURN":    true,
-		"DAMAGE":    true,
+		"PURCHASE":    true,
+		"SALE":        true,
+		"RETURN":      true,
+		"DAMAGE":      true,
 		"STOCK_CHECK": true,
-		"TRANSFER":  false,
-		"UNKNOWN":   false,
-		"":          false,
+		"TRANSFER":    false,
+		"UNKNOWN":     false,
+		"":            false,
 	}
 
 	allowedCodes := []string{"PURCHASE", "SALE", "RETURN", "DAMAGE", "STOCK_CHECK"}
