@@ -808,7 +808,11 @@ When a user logs in, Eventide:
 **GET /logout**
 - Description: Logout user and destroy session
 - Authentication: Required (any role)
-- Response: Redirect to login page
+- Side effects:
+  - Deletes session token from in-memory session store
+  - Clears session_token cookie on client
+  - User must login again to access authenticated endpoints
+- Response: Redirect to login page (302 Found)
 
 ### Inventory Endpoints
 
@@ -913,6 +917,111 @@ When a user logs in, Eventide:
     "supplier_id": 1
   }
   ```
+
+### User Session Endpoints
+
+**GET /api/session**
+- Description: Get current authenticated user's session information
+- Authentication: Required (any role)
+- Response (200 OK):
+  ```json
+  {
+    "username": "malik",
+    "role": "warehouse_manager"
+  }
+  ```
+- Notes:
+  - Useful for frontend to display current user and verify session is still valid
+  - Returns empty response if session is invalid or expired
+
+### Historical Reporting Endpoints
+
+**GET /api/history**
+- Description: Retrieve daily or monthly inventory movement statements for historical analysis
+- Authentication: Required (any role)
+- Query Parameters:
+  - `period` (optional, default="daily"): "daily" or "monthly"
+  - `start_date` (required for daily): Start date (ISO 8601: YYYY-MM-DD)
+  - `end_date` (required for daily): End date (ISO 8601: YYYY-MM-DD)
+  - `item_id` (optional): Filter by specific item
+  - `warehouse_code` (optional): Filter by warehouse code
+  - `window` (optional, default=4): For monthly: number of months to look back
+- Response (200 OK):
+  ```json
+  [
+    {
+      "date": "2026-01-15",
+      "item_id": 1,
+      "item_name": "Laptop Pro 15",
+      "warehouse_id": 1,
+      "warehouse_code": "WH-CENTRAL",
+      "in_quantity": 50,
+      "out_quantity": 12,
+      "net_change": 38
+    }
+  ]
+  ```
+- Notes:
+  - Daily statements aggregate events for each calendar day
+  - Monthly statements aggregate events for each calendar month
+  - Allows trend analysis and historical inventory reconstruction
+  - Both inbound and outbound quantities tracked separately
+
+### Analytics & KPI Endpoints
+
+**GET /api/most-active**
+- Description: Get top 10 items by outbound activity (sales/usage) in the last 30 days
+- Authentication: Required (admin, manager)
+- Query Parameters: None
+- Response (200 OK):
+  ```json
+  [
+    {
+      "id": 1,
+      "name": "Laptop Pro 15",
+      "sku": "TECH-001",
+      "event_count": 127
+    }
+  ]
+  ```
+- Use case: Identify fast-moving inventory for restocking prioritization
+
+**GET /api/dead-stock**
+- Description: Get top 10 items that have inventory but haven't been sold/moved in 30+ days
+- Authentication: Required (admin, manager)
+- Query Parameters: None
+- Response (200 OK):
+  ```json
+  [
+    {
+      "id": 15,
+      "name": "USB-C Cable",
+      "sku": "TECH-003",
+      "current_quantity": 120,
+      "days_inactive": 45
+    }
+  ]
+  ```
+- Use case: Identify slow-moving or obsolete inventory candidates for clearance or liquidation
+
+**GET /api/demand-spikes**
+- Description: Get items showing unusual demand activity (high outbound) in the last 7 days
+- Authentication: Required (admin, manager)
+- Query Parameters: None
+- Response (200 OK):
+  ```json
+  [
+    {
+      "id": 1,
+      "name": "Laptop Pro 15",
+      "sku": "TECH-001",
+      "recent_activity": 89
+    }
+  ]
+  ```
+- Use case: Detect unexpected demand spikes to trigger inventory alerts or adjust forecasts
+
+---
 
 ### Forecasting Endpoints
 
