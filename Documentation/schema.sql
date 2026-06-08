@@ -105,12 +105,14 @@ INSERT INTO items (name, sku, description, minimum_stock, category, supplier_id)
 
 -- Events (inventory transactions)
 INSERT INTO events (type, item_id, quantity_change, reason_code, user_id, warehouse_id, timestamp) VALUES
-('inbound', 1, 25, 'PURCHASE', 1, 1, CURRENT_TIMESTAMP - INTERVAL '7 days'),
-('inbound', 2, 150, 'PURCHASE', 2, 1, CURRENT_TIMESTAMP - INTERVAL '6 days'),
+('inbound', 1, 8, 'PURCHASE', 1, 1, CURRENT_TIMESTAMP - INTERVAL '7 days'),
 ('outbound', 1, 5, 'SALE', 3, 1, CURRENT_TIMESTAMP - INTERVAL '5 days'),
+('outbound', 1, 2, 'SALE', 3, 1, CURRENT_TIMESTAMP - INTERVAL '4 days'),
+('inbound', 2, 35, 'PURCHASE', 2, 1, CURRENT_TIMESTAMP - INTERVAL '6 days'),
+('outbound', 2, 10, 'SALE', 3, 1, CURRENT_TIMESTAMP - INTERVAL '5 days'),
+('outbound', 2, 20, 'SALE', 3, 1, CURRENT_TIMESTAMP - INTERVAL '2 days'),
 ('adjustment', 3, 10, 'STOCK_CHECK', 1, 1, CURRENT_TIMESTAMP - INTERVAL '4 days'),
 ('inbound', 4, 15, 'PURCHASE', 4, 1, CURRENT_TIMESTAMP - INTERVAL '3 days'),
-('outbound', 2, 25, 'SALE', 3, 1, CURRENT_TIMESTAMP - INTERVAL '2 days'),
 ('inbound', 5, 35, 'PURCHASE', 1, 1, CURRENT_TIMESTAMP),
 ('outbound', 3, 30, 'SALE', 5, 2, CURRENT_TIMESTAMP),
 ('adjustment', 6, 5, 'STOCK_CHECK', 4, 1, CURRENT_TIMESTAMP - INTERVAL '12 hours'),
